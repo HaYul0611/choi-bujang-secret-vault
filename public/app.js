@@ -34,14 +34,14 @@ const ThemeModule = {
       document.documentElement.setAttribute('data-theme', 'dark');
       if (this.toggleBtn) this.toggleBtn.setAttribute('aria-checked', 'true');
       if (this.themeIcon) {
-        this.themeIcon.innerHTML = `<svg class="svg-moon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+        this.themeIcon.innerHTML = `<svg class="svg-moon" viewBox="0 0 24 24" width="15" height="15" fill="#facc15" stroke="#eab308" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
         this.themeIcon.style.transform = 'rotate(360deg)';
       }
     } else {
       document.documentElement.removeAttribute('data-theme');
       if (this.toggleBtn) this.toggleBtn.setAttribute('aria-checked', 'false');
       if (this.themeIcon) {
-        this.themeIcon.innerHTML = `<svg class="svg-sun" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+        this.themeIcon.innerHTML = `<svg class="svg-sun" viewBox="0 0 24 24" width="15" height="15" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
         this.themeIcon.style.transform = 'rotate(0deg)';
       }
     }
@@ -65,6 +65,7 @@ const NotesModule = {
   titleInput: document.querySelector('#new-note-title'),
   bodyInput: document.querySelector('#new-note-body'),
   submitBtn: document.querySelector('#btn-create-note'),
+  searchInput: document.querySelector('#notes-search-input'),
   
   cachedNotes: null,
   abortController: null,
@@ -73,21 +74,49 @@ const NotesModule = {
     if (this.formEl) {
       this.formEl.addEventListener('submit', (e) => this.handleCreateNote(e));
     }
+    if (this.searchInput) {
+      this.searchInput.addEventListener('input', () => {
+        this.filterNotes(this.searchInput.value.trim());
+      });
+    }
   },
 
-  render(notes) {
+  filterNotes(keyword) {
+    if (!this.cachedNotes) return;
+    if (!keyword) {
+      this.render(this.cachedNotes);
+      return;
+    }
+    const lower = keyword.toLowerCase();
+    const filtered = this.cachedNotes.filter((n) => {
+      const title = (n.title || '').toLowerCase();
+      const body = (n.body || n.content || '').toLowerCase();
+      return title.includes(lower) || body.includes(lower);
+    });
+    this.render(filtered, true, keyword);
+  },
+
+  render(notes, isFiltered = false, keyword = '') {
     if (this.countEl) {
       const len = notes?.length || 0;
-      this.countEl.textContent = `${len}개 안전 보관 중`;
+      if (isFiltered) {
+        this.countEl.textContent = `검색 결과: ${len}개`;
+      } else {
+        this.countEl.textContent = `${len}개 안전 보관 중`;
+      }
     }
 
     if (!notes || notes.length === 0) {
       const emptyLi = document.createElement('li');
       emptyLi.className = 'empty-item';
       emptyLi.innerHTML = `
-        <div class="empty-icon">📂</div>
-        <p>보관된 메모가 없습니다.</p>
-        <small>좌측 폼에서 새 메모를 작성해 보세요.</small>
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <p>${isFiltered ? `'${keyword}' 검색 결과가 없습니다.` : '보관된 메모가 없습니다.'}</p>
+        <small>${isFiltered ? '다른 검색어를 입력해 보세요.' : '좌측 폼에서 새 메모를 작성해 보세요.'}</small>
       `;
       this.listEl.replaceChildren(emptyLi);
       return;
@@ -171,7 +200,12 @@ const NotesModule = {
       if (!Array.isArray(data.notes)) throw new Error('자료 형식이 올바르지 않습니다.');
       
       this.cachedNotes = data.notes;
-      this.render(data.notes);
+      const kw = this.searchInput?.value?.trim();
+      if (kw) {
+        this.filterNotes(kw);
+      } else {
+        this.render(data.notes);
+      }
     } catch (error) {
       if (error.name === 'AbortError') return;
       if (!this.cachedNotes) {
@@ -358,15 +392,19 @@ const AuthModule = {
     }, duration);
   },
 
-  // 3단계 비밀번호 보안 강도 실시간 분석 및 게이지 바 반영
+  // 3단계 비밀번호 보안 강도 실시간 분석 및 게이지 바 반영 (입력 시에만 노출)
   updatePasswordStrength(password) {
     if (!this.pwdStrengthContainer || !this.pwdStrengthText) return;
-    this.pwdStrengthContainer.classList.remove('level-weak', 'level-medium', 'level-strong');
 
-    if (!password) {
+    if (!password || password.trim().length === 0) {
+      this.pwdStrengthContainer.style.display = 'none';
+      this.pwdStrengthContainer.classList.remove('level-weak', 'level-medium', 'level-strong');
       this.pwdStrengthText.textContent = '입력 대기';
       return;
     }
+
+    this.pwdStrengthContainer.style.display = 'block';
+    this.pwdStrengthContainer.classList.remove('level-weak', 'level-medium', 'level-strong');
 
     let score = 0;
     if (password.length >= 6) score++;
@@ -392,6 +430,23 @@ const AuthModule = {
     this.tabSignup?.addEventListener('click', () => this.switchTab('signup'));
     this.loginForm?.addEventListener('submit', (e) => this.handleSubmit(e));
     this.btnLogout?.addEventListener('click', () => this.handleLogout());
+
+    // Caps Lock 켜짐 실시간 감지
+    const checkCapsLock = (e, warningEl) => {
+      if (!warningEl) return;
+      const isCaps = e.getModifierState && e.getModifierState('CapsLock');
+      warningEl.style.display = isCaps ? 'flex' : 'none';
+    };
+
+    const loginPw = document.getElementById('login-password');
+    const loginCapsWarning = document.getElementById('login-caps-warning');
+    loginPw?.addEventListener('keyup', (e) => checkCapsLock(e, loginCapsWarning));
+    loginPw?.addEventListener('keydown', (e) => checkCapsLock(e, loginCapsWarning));
+
+    const mypagePw = document.getElementById('mypage-new-password');
+    const mypageCapsWarning = document.getElementById('mypage-caps-warning');
+    mypagePw?.addEventListener('keyup', (e) => checkCapsLock(e, mypageCapsWarning));
+    mypagePw?.addEventListener('keydown', (e) => checkCapsLock(e, mypageCapsWarning));
 
     // 인라인 눈 모양(SVG) 비밀번호 표시 토글
     document.querySelectorAll('.btn-toggle-eye').forEach((btn) => {

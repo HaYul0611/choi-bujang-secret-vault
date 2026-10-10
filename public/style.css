@@ -584,7 +584,7 @@ li.empty-item {
 
 .floating-theme-container .theme-switch {
   position: relative;
-  width: 58px;
+  width: 60px;
   height: 32px;
   background: var(--surface);
   backdrop-filter: blur(16px);
@@ -599,6 +599,12 @@ li.empty-item {
   user-select: none;
   outline: none;
   transition: all var(--transition-speed) ease;
+}
+
+[data-theme="dark"] .floating-theme-container .theme-switch {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
 .floating-theme-container .theme-switch:hover {
@@ -624,16 +630,39 @@ li.empty-item {
 }
 
 [data-theme="dark"] .floating-theme-container .theme-switch-knob {
-  transform: translateX(26px);
+  transform: translateX(28px);
+  background: #0f172a;
+  border-color: #475569;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
 .floating-theme-container .theme-switch-icon {
-  font-size: 13px;
-  line-height: 1;
+  width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.4s ease;
+  transition: transform 0.4s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.floating-theme-container .theme-switch-icon svg {
+  display: block;
+}
+
+/* 라이트 모드 해 아이콘 (따뜻한 앰버 글로우) */
+.floating-theme-container .theme-switch-icon .svg-sun {
+  color: #f59e0b;
+  stroke: #f59e0b;
+  fill: #fef3c7;
+  filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.45));
+}
+
+/* 다크 모드 달 아이콘 (영롱한 골드 초승달 글로우) */
+.floating-theme-container .theme-switch-icon .svg-moon {
+  color: #facc15;
+  stroke: #eab308;
+  fill: #facc15;
+  filter: drop-shadow(0 0 5px rgba(250, 204, 21, 0.8));
 }
 
 /* ID / 비밀번호 찾기 링크 */
@@ -1043,4 +1072,71 @@ button:active {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+/* ==========================================
+   Caps Lock 켜짐 감지 경고 툴팁
+   ========================================== */
+.caps-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  padding: 5px 10px;
+  border-radius: 6px;
+  margin-top: 6px;
+  margin-bottom: 2px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+[data-theme="dark"] .caps-warning {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.14);
+  border-color: rgba(251, 191, 36, 0.35);
+}
+
+/* ==========================================
+   실시간 메모 검색창
+   ========================================== */
+.notes-search-wrapper {
+  position: relative;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+}
+
+.notes-search-wrapper .search-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-light);
+  pointer-events: none;
+  transition: color var(--transition-speed) ease;
+}
+
+.notes-search-wrapper input {
+  width: 100%;
+  padding: 10px 16px 10px 38px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-subtle);
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+  transition: all var(--transition-speed) ease;
+}
+
+.notes-search-wrapper input:focus {
+  border-color: var(--border-focus);
+  background: var(--surface-solid);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.notes-search-wrapper input:focus + .search-icon,
+.notes-search-wrapper input:not(:placeholder-shown) + .search-icon {
+  color: var(--accent);
 }

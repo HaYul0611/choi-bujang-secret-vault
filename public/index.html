@@ -61,6 +61,12 @@
                 </svg>
               </button>
             </div>
+            <div class="caps-warning" id="login-caps-warning" style="display: none;">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L4 10h5v12h6V10h5z"/>
+              </svg>
+              Caps Lock이 켜져 있습니다
+            </div>
             <button type="submit" class="btn-primary" id="btn-login">로그인</button>
           </form>
 
@@ -148,8 +154,16 @@
                 </button>
               </div>
 
-              <!-- 3단계 비밀번호 보안 강도 게이지 바 -->
-              <div class="pwd-strength-container" id="pwd-strength-container">
+              <!-- Caps Lock 경고 -->
+              <div class="caps-warning" id="mypage-caps-warning" style="display: none;">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2L4 10h5v12h6V10h5z"/>
+                </svg>
+                Caps Lock이 켜져 있습니다
+              </div>
+
+              <!-- 3단계 비밀번호 보안 강도 게이지 바 (입력 시에만 노출) -->
+              <div class="pwd-strength-container" id="pwd-strength-container" style="display: none;">
                 <div class="pwd-strength-header">
                   <span class="pwd-strength-label">보안 강도:</span>
                   <span class="pwd-strength-text" id="pwd-strength-text">입력 대기</span>
@@ -224,6 +238,16 @@
           <div class="section-title">보관된 메모 목록</div>
           <div class="note-count-badge" id="notes-count">보안 보관 중</div>
         </div>
+
+        <!-- 실시간 메모 검색 바 -->
+        <div class="notes-search-wrapper">
+          <svg class="search-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="search" id="notes-search-input" placeholder="보관된 메모 제목 또는 본문 검색..." autocomplete="off" />
+        </div>
+
         <ul id="notes" aria-live="polite">
           <li class="empty-item">자료실 동기화 중...</li>
         </ul>
@@ -235,19 +259,7 @@
   <aside class="floating-theme-container">
     <button type="button" class="theme-switch" id="themeToggle" aria-label="테마 전환" role="switch" aria-checked="false" title="화면 모드 전환">
       <div class="theme-switch-knob">
-        <span class="theme-switch-icon" id="themeIcon">
-          <svg class="svg-sun" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="5"/>
-            <line x1="12" y1="1" x2="12" y2="3"/>
-            <line x1="12" y1="21" x2="12" y2="23"/>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-            <line x1="1" y1="12" x2="3" y2="12"/>
-            <line x1="21" y1="12" x2="23" y2="12"/>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-          </svg>
-        </span>
+        <span class="theme-switch-icon" id="themeIcon"></span>
       </div>
     </button>
   </aside>
