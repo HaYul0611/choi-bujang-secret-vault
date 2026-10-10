@@ -21,13 +21,24 @@ function getVerifier() {
   return verifier;
 }
 
+let supabaseClient;
+function getSupabaseClient() {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SECRET_KEY;
+  if (!supabaseUrl || !supabaseKey) return null;
+  if (!supabaseClient) {
+    supabaseClient = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false },
+    });
+  }
+  return supabaseClient;
+}
+
 export default async function handler(request, response) {
   response.setHeader('Cache-Control', 'no-store');
 
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SECRET_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
+  const supabase = getSupabaseClient();
+  if (!supabase) {
     return response.status(500).json({ error: 'DATABASE_CONFIGURATION_MISSING' });
   }
 
@@ -53,10 +64,6 @@ export default async function handler(request, response) {
   if (!id) {
     return response.status(400).json({ error: 'BAD_REQUEST', message: 'id 파라미터가 필요합니다.' });
   }
-
-  const supabase = createClient(supabaseUrl, supabaseKey, {
-    auth: { persistSession: false },
-  });
 
   // GET: 단건 조회 (본인 메모만 허용)
   if (request.method === 'GET') {

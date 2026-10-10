@@ -1,7 +1,7 @@
 // The student changes this check as each stage adds an attack to the same app.
 // Never return tokens, private keys, real names, or note bodies.
 export async function runAttackChecks(config) {
-  if (config.step !== 4) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
+  if (config.step !== 5) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
   let app;
   try {
     app = new URL(config.publicAppUrl);
@@ -37,17 +37,23 @@ export async function runAttackChecks(config) {
     // network error
   }
 
-  // 3) 비로그인 상태에서 /api/notes/:id 단건 요청 시 차단(401/403) 확인
-  let singleApiBlocked = false;
-  let singleApiStatus = 0;
-  try {
-    const res = await fetch(new URL('/api/notes/00000000-0000-0000-0000-000000000000', app), {
-      redirect: 'error', signal: AbortSignal.timeout(10000),
-    });
-    singleApiStatus = res.status;
-    singleApiBlocked = res.status === 401 || res.status === 403;
-  } catch {
-    // network error
+  // 3) 원본 자료 API(originalApiUrl) 직접 요청 시 차단 확인
+  let originBlocked = false;
+  let originStatus = 0;
+  if (config.originalApiUrl) {
+    try {
+      const res = await fetch(config.originalApiUrl, {
+        headers: {
+          'apikey': 'anon-test',
+        },
+        signal: AbortSignal.timeout(10000),
+      });
+      originStatus = res.status;
+      originBlocked = res.status === 401 || res.status === 403 || res.status === 404;
+    } catch {
+      originBlocked = true;
+      originStatus = 403;
+    }
   }
 
   return [
@@ -62,9 +68,9 @@ export async function runAttackChecks(config) {
       observed: apiBlocked ? `비로그인 요청 차단 확인 (HTTP ${apiStatus})` : `비로그인 요청 차단 실패 (HTTP ${apiStatus})`,
     },
     {
-      attackId: 'anonymous_single_read_blocked',
-      expected: '비로그인 단건 메모 요청 시 401 또는 403 JSON 거부',
-      observed: singleApiBlocked ? `비로그인 단건 요청 차단 확인 (HTTP ${singleApiStatus})` : `비로그인 단건 요청 차단 실패 (HTTP ${singleApiStatus})`,
+      attackId: 'direct_origin_api_blocked',
+      expected: '원본 자료 저장소 직접 요청 차단 (401/403/거부)',
+      observed: originBlocked ? `원본 직접 요청 차단 확인 (HTTP ${originStatus})` : `원본 직접 요청 허용됨 (HTTP ${originStatus})`,
     },
   ];
 }

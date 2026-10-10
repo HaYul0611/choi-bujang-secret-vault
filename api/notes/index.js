@@ -22,13 +22,24 @@ function getVerifier() {
   return verifier;
 }
 
+let supabaseClient;
+function getSupabaseClient() {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SECRET_KEY;
+  if (!supabaseUrl || !supabaseKey) return null;
+  if (!supabaseClient) {
+    supabaseClient = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false },
+    });
+  }
+  return supabaseClient;
+}
+
 export default async function handler(request, response) {
   response.setHeader('Cache-Control', 'no-store');
 
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SECRET_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
+  const supabase = getSupabaseClient();
+  if (!supabase) {
     return response.status(500).json({ error: 'DATABASE_CONFIGURATION_MISSING' });
   }
 
@@ -49,10 +60,6 @@ export default async function handler(request, response) {
   if (!user || !user.userId) {
     return response.status(401).json({ error: 'UNAUTHORIZED', message: '유효한 로그인 토큰이 아닙니다.' });
   }
-
-  const supabase = createClient(supabaseUrl, supabaseKey, {
-    auth: { persistSession: false },
-  });
 
   // GET: 메모 목록 조회 (본인 소유 메모만 조회)
   if (request.method === 'GET') {

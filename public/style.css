@@ -1,0 +1,329 @@
+*, *::before, *::after {
+  margin: 0; padding: 0; box-sizing: border-box;
+}
+
+:root {
+  --bg: #f5f5f3;
+  --surface: #ffffff;
+  --surface-subtle: #eaeae7;
+  --text: #111111;
+  --text-mid: #444444;
+  --text-light: #777777;
+  --text-muted: #aaaaaa;
+  --border: #e0e0dc;
+  --border-focus: #111111;
+  --accent: #111111;
+  --accent-text: #ffffff;
+  --btn-secondary-bg: #eaeae7;
+  --btn-secondary-text: #222222;
+  --btn-danger-bg: #fbebee;
+  --btn-danger-text: #e11d48;
+  --btn-danger-border: #f87171;
+  --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  --transition-speed: 0.35s;
+}
+
+[data-theme="dark"] {
+  --bg: #111111;
+  --surface: #181818;
+  --surface-subtle: #242424;
+  --text: #e8e8e6;
+  --text-mid: #bbbbbb;
+  --text-light: #888888;
+  --text-muted: #555555;
+  --border: #2c2c2c;
+  --border-focus: #e8e8e6;
+  --accent: #e8e8e6;
+  --accent-text: #111111;
+  --btn-secondary-bg: #282828;
+  --btn-secondary-text: #e8e8e6;
+  --btn-danger-bg: #2d161a;
+  --btn-danger-text: #fb7185;
+  --btn-danger-border: #9f1239;
+  --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+body {
+  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 전역 테마 전환 시 부드러운 페이드 효과 */
+.card, li.note-item, li.empty-item, .top-bar, input, textarea, button, .theme-switch {
+  transition: background-color var(--transition-speed) ease,
+              border-color var(--transition-speed) ease,
+              color var(--transition-speed) ease,
+              box-shadow var(--transition-speed) ease;
+}
+
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 44px 20px 80px;
+}
+
+/* 상단 네비게이션 헤더 */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 36px;
+}
+
+.brand-tag {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-light);
+}
+
+/* 슬라이딩 스위치 토글 */
+.theme-switch {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+.theme-switch:hover {
+  border-color: var(--text-light);
+}
+
+.theme-switch-knob {
+  width: 22px;
+  height: 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateX(0px);
+  transition: transform 0.32s cubic-bezier(0.34, 1.4, 0.64, 1),
+              background-color var(--transition-speed) ease,
+              border-color var(--transition-speed) ease;
+}
+
+[data-theme="dark"] .theme-switch-knob {
+  transform: translateX(24px);
+}
+
+.theme-switch-icon {
+  font-size: 12px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.4s ease;
+}
+
+/* 메인 타이틀 */
+.hero {
+  margin-bottom: 32px;
+}
+.hero h1 {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+.hero p {
+  font-size: 15px;
+  color: var(--text-light);
+}
+
+/* 카드 컨테이너 */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 24px;
+}
+
+.card h2 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+
+/* 폼 스타일 */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-subtle);
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+}
+input:focus, textarea:focus {
+  border-color: var(--border-focus);
+  background: var(--surface);
+}
+
+/* 버튼 시스템 */
+.btn-primary {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--accent);
+  color: var(--accent-text);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+}
+.btn-primary:hover {
+  opacity: 0.9;
+}
+.btn-primary:active {
+  transform: scale(0.99);
+}
+
+.btn-secondary {
+  padding: 6px 12px;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.btn-secondary:hover {
+  border-color: var(--text-mid);
+}
+
+.btn-danger {
+  padding: 6px 12px;
+  background: var(--btn-danger-bg);
+  color: var(--btn-danger-text);
+  border: 1px solid var(--btn-danger-border);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.btn-danger:hover {
+  opacity: 0.85;
+}
+
+/* 사용자 상태 바 */
+.user-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 18px;
+}
+.user-badge {
+  font-size: 13px;
+  color: var(--text-light);
+}
+.user-badge strong {
+  color: var(--text);
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.auth-error-msg {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #e11d48;
+}
+
+/* 메모 목록 */
+.section-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  margin-bottom: 14px;
+}
+
+ul#notes {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+li.note-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  box-shadow: var(--card-shadow);
+}
+li.note-item:hover {
+  border-color: var(--text-muted);
+}
+
+.note-content {
+  flex: 1;
+}
+.note-content strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.note-content span {
+  font-size: 14px;
+  color: var(--text-mid);
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.note-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+li.empty-item {
+  background: var(--surface-subtle);
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--text-light);
+  font-size: 14px;
+}

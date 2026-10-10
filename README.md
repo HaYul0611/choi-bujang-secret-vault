@@ -60,3 +60,11 @@
 - 타인 소유의 메모에 대한 단건 조회, 수정, 삭제 요청 및 소유자 변경 시도는 `403 Forbidden` JSON 오류로 차단됩니다.
 - Supabase DB 레벨에서 RLS(Row Level Security)를 활성화하고, `anon` 역할의 권한을 전면 회수(`REVOKE ALL`)한 뒤 `authenticated` 역할에 대해 `auth.uid() = owner_id` 조건의 최소 CRUD 권한만 부여했습니다.
 - 로컬 빌드: `npm run build -- --local`
+
+## 5단계: 자료 요청을 서버 한 곳으로 모읍니다
+
+### 1. 현재 작동하는 기능과 다시 실행하는 방법
+- 클라이언트의 메모 CRUD 요청 통로를 Vercel 서버 함수(`/api/notes`, `/api/notes/:id`)로 일원화하고 프론트엔드 모듈화(`style.css`, `app.js`) 및 인메모리 SWR 캐싱을 적용했습니다.
+- Supabase DB `notes` 테이블에서 `PUBLIC`, `anon`, `authenticated`의 직접 접근 권한을 전면 회수(`REVOKE ALL`)하여 Data API(PostgREST) 직접 조회를 원천 차단했습니다.
+- 서버 함수는 관리자 전용 서비스 롤 키(`SUPABASE_SECRET_KEY`)와 로그인/소유자 검증을 통해 본인 메모의 안전한 CRUD를 보존합니다.
+- 로컬 빌드: `npm run build -- --local`
