@@ -854,14 +854,16 @@ li.empty-item {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
   animation: fadeIn 0.2s ease-out;
+}
+
+[data-theme="dark"] .modal-backdrop {
+  background: rgba(0, 0, 0, 0.55);
 }
 
 .modal-box {
@@ -992,19 +994,27 @@ li.empty-item {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 10px;
-  margin-top: 10px;
-  padding-top: 14px;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 16px;
   border-top: 1px solid var(--border);
 }
 
 .modal-action-buttons .btn-secondary,
 .modal-action-buttons .btn-primary {
-  padding: 10px 20px;
-  font-size: 13.5px;
+  width: auto;
+  min-width: 90px;
+  padding: 11px 22px;
+  font-size: 14px;
   border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  box-sizing: border-box;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

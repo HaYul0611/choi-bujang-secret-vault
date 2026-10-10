@@ -90,19 +90,13 @@ const NotesModule = {
       });
     }
 
-    // 수정 모달 이벤트 리스너 바인딩
+    // 수정 모달 이벤트 리스너 바인딩 (X버튼, 취소버튼, 외부 백드롭 클릭)
     this.btnCloseEdit?.addEventListener('click', () => this.closeEditModal());
     this.btnCancelEdit?.addEventListener('click', () => this.closeEditModal());
     this.editModal?.addEventListener('click', (e) => {
       if (e.target === this.editModal) this.closeEditModal();
     });
     this.editForm?.addEventListener('submit', (e) => this.handleSubmitEdit(e));
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && this.editModal && this.editModal.style.display !== 'none') {
-        this.closeEditModal();
-      }
-    });
   },
 
   filterNotes(keyword) {
@@ -610,13 +604,14 @@ const AuthModule = {
       this.findMsg.style.display = 'none';
       this.findError.style.display = 'none';
       this.findEmailInput.value = '';
+      setTimeout(() => this.findEmailInput.focus(), 60);
     });
     this.btnCloseFind?.addEventListener('click', () => {
-      this.findModal.style.display = 'none';
+      this.closeFindModal();
     });
     this.findModal?.addEventListener('click', (e) => {
       if (e.target === this.findModal) {
-        this.findModal.style.display = 'none';
+        this.closeFindModal();
       }
     });
 
@@ -791,11 +786,37 @@ const AuthModule = {
       this.userEmailDisplay.textContent = '';
       NotesModule.cachedNotes = null;
     }
+  },
+
+  closeFindModal() {
+    if (this.findModal) {
+      this.findModal.style.display = 'none';
+    }
   }
 };
 
 // ==========================================
-// 4. 애플리케이션 초기화
+// 4. 전역 모달 키보드 단축키 (ESC 키로 모든 모달 닫기)
+// ==========================================
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' || e.key === 'Esc' || e.keyCode === 27) {
+    // 메모 수정 모달 닫기
+    if (NotesModule.editModal && NotesModule.editModal.style.display !== 'none') {
+      NotesModule.closeEditModal();
+    }
+    // ID / PW 찾기 모달 닫기
+    if (AuthModule.findModal && AuthModule.findModal.style.display !== 'none') {
+      AuthModule.closeFindModal();
+    }
+    // 마이페이지 패널 닫기
+    if (AuthModule.mypagePanel && AuthModule.mypagePanel.style.display !== 'none') {
+      AuthModule.mypagePanel.style.display = 'none';
+    }
+  }
+});
+
+// ==========================================
+// 5. 애플리케이션 초기화
 // ==========================================
 ThemeModule.init();
 NotesModule.init();
