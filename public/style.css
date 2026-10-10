@@ -608,3 +608,219 @@ li.empty-item {
   justify-content: center;
   transition: transform 0.4s ease;
 }
+
+/* ID / 비밀번호 찾기 링크 */
+.auth-helper-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all var(--transition-speed) ease;
+}
+
+.link-btn:hover {
+  color: var(--accent);
+  background: var(--surface-subtle);
+  text-decoration: underline;
+}
+
+/* 유저 상단 바 액션 영역 */
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 마이페이지 패널 */
+.mypage-panel {
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.mypage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.mypage-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.btn-close-sm {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all var(--transition-speed) ease;
+}
+
+.btn-close-sm:hover {
+  color: var(--text);
+  background: var(--surface-solid);
+}
+
+.mypage-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+  font-size: 13px;
+}
+
+.mypage-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mypage-label {
+  color: var(--text-light);
+}
+
+.mypage-val {
+  color: var(--text);
+  font-weight: 500;
+  font-family: monospace, inherit;
+}
+
+.mypage-status-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+  font-weight: 600;
+}
+[data-theme="dark"] .mypage-status-tag {
+  color: #34d399;
+}
+
+.mypage-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mypage-form .field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.input-with-button {
+  display: flex;
+  gap: 8px;
+}
+
+.input-with-button input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-solid);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.input-with-button button {
+  white-space: nowrap;
+  padding: 10px 16px;
+  font-size: 13px;
+}
+
+/* 모달 팝업 */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-box {
+  background: var(--surface);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  animation: cardEnter 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.modal-body {
+  padding: 22px 24px;
+}
+
+.find-guide-card {
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.guide-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.guide-desc {
+  font-size: 12px;
+  color: var(--text-light);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.modal-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
+}

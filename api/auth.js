@@ -55,6 +55,48 @@ export default async function handler(request, response) {
     const email = body?.email?.trim();
     const password = body?.password;
 
+    if (action === 'reset_password') {
+      if (!email) {
+        return response.status(400).json({ error: '이메일 주소를 입력해 주세요.' });
+      }
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) {
+        return response.status(400).json({ error: formatAuthError(error.message) });
+      }
+      return response.status(200).json({
+        ok: true,
+        message: '비밀번호 재설정 이메일이 발송되었습니다. 수신함을 확인해 주세요.',
+      });
+    }
+
+    if (action === 'update_password') {
+      const authHeader = request.headers.authorization;
+      const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+      if (!token) {
+        return response.status(401).json({ error: '로그인 인증 세션이 만료되었습니다.' });
+      }
+      const newPassword = body?.newPassword || password;
+      if (!newPassword || newPassword.length < 6) {
+        return response.status(400).json({ error: '새 비밀번호는 최소 6자 이상이어야 합니다.' });
+      }
+
+      const { data: userData, error: userError } = await supabase.auth.getUser(token);
+      if (userError || !userData?.user) {
+        return response.status(401).json({ error: '유효한 로그인 세션이 아닙니다.' });
+      }
+
+      const { error: updateError } = await supabase.auth.admin.updateUserById(userData.user.id, {
+        password: newPassword,
+      });
+      if (updateError) {
+        return response.status(400).json({ error: formatAuthError(updateError.message) });
+      }
+      return response.status(200).json({
+        ok: true,
+        message: '비밀번호가 성공적으로 변경되었습니다.',
+      });
+    }
+
     if (!email || !password) {
       return response.status(400).json({ error: '이메일과 비밀번호를 모두 입력해 주세요.' });
     }

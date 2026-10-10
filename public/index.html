@@ -45,6 +45,11 @@
             <input type="password" id="login-password" placeholder="비밀번호 (6자 이상)" required autocomplete="current-password" />
             <button type="submit" class="btn-primary" id="btn-login">로그인</button>
           </form>
+
+          <div class="auth-helper-row">
+            <button type="button" class="link-btn" id="btn-open-find">ID / 비밀번호 찾기</button>
+          </div>
+
           <div class="auth-message-msg" id="auth-msg" style="display: none;"></div>
           <div class="auth-error-msg" id="login-error" style="display: none;"></div>
         </div>
@@ -55,7 +60,37 @@
             <div class="user-badge">
               접속 계정: <strong id="user-email-display"></strong>
             </div>
-            <button type="button" class="btn-secondary" id="btn-logout">로그아웃</button>
+            <div class="user-actions">
+              <button type="button" class="btn-secondary" id="btn-toggle-mypage">마이페이지</button>
+              <button type="button" class="btn-secondary" id="btn-logout">로그아웃</button>
+            </div>
+          </div>
+
+          <!-- 마이페이지 계정 수정 패널 -->
+          <div id="mypage-panel" class="mypage-panel" style="display: none;">
+            <div class="mypage-header">
+              <span class="mypage-title">⚙️ 마이페이지 · 계정 보안 설정</span>
+              <button type="button" class="btn-close-sm" id="btn-close-mypage">✕</button>
+            </div>
+            <div class="mypage-info">
+              <div class="mypage-row">
+                <span class="mypage-label">인증 계정</span>
+                <span class="mypage-val" id="mypage-email-display"></span>
+              </div>
+              <div class="mypage-row">
+                <span class="mypage-label">보안 상태</span>
+                <span class="mypage-status-tag">🛡️ 격리 RLS 보호 적용</span>
+              </div>
+            </div>
+            <form id="mypage-password-form" class="mypage-form">
+              <label for="mypage-new-password" class="field-label">비밀번호 변경</label>
+              <div class="input-with-button">
+                <input type="password" id="mypage-new-password" placeholder="새 비밀번호 (6자 이상)" required />
+                <button type="submit" class="btn-primary" id="btn-submit-new-password">변경 저장</button>
+              </div>
+            </form>
+            <div id="mypage-msg" class="auth-message-msg" style="display: none;"></div>
+            <div id="mypage-error" class="auth-error-msg" style="display: none;"></div>
           </div>
 
           <div class="card-subtitle">새 보안 메모 작성</div>
@@ -66,6 +101,31 @@
           </form>
         </div>
       </section>
+
+      <!-- ID / 비밀번호 찾기 모달 -->
+      <div id="find-modal" class="modal-backdrop" style="display: none;">
+        <div class="modal-box">
+          <div class="modal-header">
+            <h3>ID / 비밀번호 찾기</h3>
+            <button type="button" class="btn-close-sm" id="btn-close-find">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="find-guide-card">
+              <div class="guide-title">💡 아이디(ID) 안내</div>
+              <p class="guide-desc">본 보안 금고의 로그인 아이디는 회원가입 시 등록하신 <strong>이메일 주소 전체</strong>입니다.</p>
+            </div>
+            <div class="modal-divider"></div>
+            <div class="guide-title">🔑 비밀번호(PW) 재설정</div>
+            <p class="guide-desc">가입하신 이메일 주소를 입력하시면 비밀번호 재설정 링크를 발송해 드립니다.</p>
+            <form id="find-password-form" class="form-group">
+              <input type="email" id="find-email-input" placeholder="가입한 이메일 주소" required />
+              <button type="submit" class="btn-primary" id="btn-submit-find">재설정 링크 발송</button>
+            </form>
+            <div id="find-msg" class="auth-message-msg" style="display: none;"></div>
+            <div id="find-error" class="auth-error-msg" style="display: none;"></div>
+          </div>
+        </div>
+      </div>
 
       <!-- 2. 보관된 메모 목록 섹션 (로그인 후 활성화) -->
       <section class="notes-section" id="notes-section" style="display: none;">

@@ -289,6 +289,27 @@ const AuthModule = {
   userEmailDisplay: document.querySelector('#user-email-display'),
   btnLogout: document.querySelector('#btn-logout'),
 
+  // 마이페이지 요소
+  btnToggleMypage: document.querySelector('#btn-toggle-mypage'),
+  mypagePanel: document.querySelector('#mypage-panel'),
+  btnCloseMypage: document.querySelector('#btn-close-mypage'),
+  mypageEmailDisplay: document.querySelector('#mypage-email-display'),
+  mypagePasswordForm: document.querySelector('#mypage-password-form'),
+  mypageNewPassword: document.querySelector('#mypage-new-password'),
+  btnSubmitNewPassword: document.querySelector('#btn-submit-new-password'),
+  mypageMsg: document.querySelector('#mypage-msg'),
+  mypageError: document.querySelector('#mypage-error'),
+
+  // ID / PW 찾기 요소
+  btnOpenFind: document.querySelector('#btn-open-find'),
+  findModal: document.querySelector('#find-modal'),
+  btnCloseFind: document.querySelector('#btn-close-find'),
+  findPasswordForm: document.querySelector('#find-password-form'),
+  findEmailInput: document.querySelector('#find-email-input'),
+  btnSubmitFind: document.querySelector('#btn-submit-find'),
+  findMsg: document.querySelector('#find-msg'),
+  findError: document.querySelector('#find-error'),
+
   init() {
     this.bindEvents();
     this.restoreSession();
@@ -313,6 +334,121 @@ const AuthModule = {
     this.tabSignup?.addEventListener('click', () => this.switchTab('signup'));
     this.loginForm?.addEventListener('submit', (e) => this.handleSubmit(e));
     this.btnLogout?.addEventListener('click', () => this.handleLogout());
+
+    // 마이페이지 토글 및 닫기
+    this.btnToggleMypage?.addEventListener('click', () => {
+      const isVisible = this.mypagePanel.style.display !== 'none';
+      this.mypagePanel.style.display = isVisible ? 'none' : 'block';
+      if (!isVisible && this.currentSession?.user) {
+        this.mypageEmailDisplay.textContent = this.currentSession.user.email;
+        this.mypageMsg.style.display = 'none';
+        this.mypageError.style.display = 'none';
+        this.mypageNewPassword.value = '';
+      }
+    });
+    this.btnCloseMypage?.addEventListener('click', () => {
+      this.mypagePanel.style.display = 'none';
+    });
+
+    // 마이페이지 새 비밀번호 변경 저장
+    this.mypagePasswordForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newPassword = this.mypageNewPassword.value;
+      if (!newPassword || newPassword.length < 6) {
+        this.mypageError.textContent = '새 비밀번호는 최소 6자 이상이어야 합니다.';
+        this.mypageError.style.display = 'block';
+        return;
+      }
+      this.btnSubmitNewPassword.disabled = true;
+      this.btnSubmitNewPassword.textContent = '변경 처리 중...';
+      this.mypageMsg.style.display = 'none';
+      this.mypageError.style.display = 'none';
+
+      try {
+        const response = await fetch('/api/auth', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'authorization': `Bearer ${this.currentSession.access_token}`
+          },
+          body: JSON.stringify({
+            action: 'update_password',
+            newPassword
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || '비밀번호 변경에 실패했습니다.');
+        }
+        this.mypageMsg.textContent = data.message || '비밀번호가 성공적으로 변경되었습니다.';
+        this.mypageMsg.style.display = 'block';
+        this.mypageNewPassword.value = '';
+      } catch (err) {
+        this.mypageError.textContent = err.message || '비밀번호 변경 중 오류가 발생했습니다.';
+        this.mypageError.style.display = 'block';
+      } finally {
+        this.btnSubmitNewPassword.disabled = false;
+        this.btnSubmitNewPassword.textContent = '변경 저장';
+      }
+    });
+
+    // ID / PW 찾기 모달 열기 및 닫기
+    this.btnOpenFind?.addEventListener('click', () => {
+      this.findModal.style.display = 'flex';
+      this.findMsg.style.display = 'none';
+      this.findError.style.display = 'none';
+      this.findEmailInput.value = '';
+    });
+    this.btnCloseFind?.addEventListener('click', () => {
+      this.findModal.style.display = 'none';
+    });
+    this.findModal?.addEventListener('click', (e) => {
+      if (e.target === this.findModal) {
+        this.findModal.style.display = 'none';
+      }
+    });
+
+    // 비밀번호 재설정 이메일 발송
+    this.findPasswordForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = this.findEmailInput.value.trim();
+      if (!email) return;
+
+      this.btnSubmitFind.disabled = true;
+      this.btnSubmitFind.textContent = '발송 중...';
+      this.findMsg.style.display = 'none';
+      this.findError.style.display = 'none';
+
+      try {
+        const response = await fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            action: 'reset_password',
+            email
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || '비밀번호 재설정 요청 실패');
+        }
+        this.findMsg.textContent = data.message || '재설정 안내 링크가 이메일로 전송되었습니다.';
+        this.findMsg.style.display = 'block';
+      } catch (err) {
+        let msg = err.message || '재설정 처리 중 오류가 발생했습니다.';
+        const lower = msg.toLowerCase();
+        if (lower.includes('rate limit') || lower.includes('too many requests')) {
+          msg = '요청 횟수 제한을 초과했습니다. 잠시 후 다시 시도해 주세요.';
+        } else if (lower.includes('email') && (lower.includes('invalid') || lower.includes('format'))) {
+          msg = '유효하지 않은 이메일 주소 형식입니다.';
+        }
+        this.findError.textContent = msg;
+        this.findError.style.display = 'block';
+      } finally {
+        this.btnSubmitFind.disabled = false;
+        this.btnSubmitFind.textContent = '재설정 링크 발송';
+      }
+    });
   },
 
   switchTab(mode) {
@@ -414,6 +550,8 @@ const AuthModule = {
   updateState(session) {
     this.currentSession = session;
     const isLoggedIn = !!(session && session.user);
+
+    if (this.mypagePanel) this.mypagePanel.style.display = 'none';
 
     if (isLoggedIn) {
       this.loginSection.style.display = 'none';
