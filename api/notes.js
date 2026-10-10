@@ -6,8 +6,14 @@ export default async function handler(request, response) {
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SECRET_KEY;
 
-  if (!supabaseUrl || !supabaseKey) {
-    return response.status(500).json({ error: 'DATABASE_CONFIGURATION_MISSING' });
+  if (!supabaseUrl && !supabaseKey) {
+    return response.status(500).json({ error: 'MISSING_BOTH_SUPABASE_URL_AND_SECRET_KEY' });
+  }
+  if (!supabaseUrl) {
+    return response.status(500).json({ error: 'MISSING_SUPABASE_URL' });
+  }
+  if (!supabaseKey) {
+    return response.status(500).json({ error: 'MISSING_SUPABASE_SECRET_KEY' });
   }
 
   try {
@@ -21,11 +27,11 @@ export default async function handler(request, response) {
       .order('id', { ascending: true });
 
     if (error) {
-      return response.status(500).json({ error: 'FAILED_TO_FETCH_NOTES' });
+      return response.status(500).json({ error: 'SUPABASE_QUERY_ERROR', details: error.message });
     }
 
     return response.status(200).json({ notes: data || [] });
-  } catch {
-    return response.status(500).json({ error: 'INTERNAL_SERVER_ERROR' });
+  } catch (err) {
+    return response.status(500).json({ error: 'INTERNAL_SERVER_ERROR', message: err.message });
   }
 }
