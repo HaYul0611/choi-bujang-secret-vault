@@ -15,12 +15,12 @@
     :root {
       --bg: #f5f5f3;
       --surface: #ffffff;
-      --surface-subtle: #f0f0ed;
+      --surface-subtle: #eaeae7;
       --text: #111111;
       --text-mid: #444444;
       --text-light: #777777;
       --text-muted: #aaaaaa;
-      --border: #e2e2dc;
+      --border: #e0e0dc;
       --border-focus: #111111;
       --accent: #111111;
       --accent-text: #ffffff;
@@ -29,14 +29,14 @@
       --btn-danger-bg: #fbebee;
       --btn-danger-text: #e11d48;
       --btn-danger-border: #f87171;
-      --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      --transition: 0.25s ease;
+      --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+      --transition-speed: 0.35s;
     }
 
     [data-theme="dark"] {
       --bg: #111111;
       --surface: #181818;
-      --surface-subtle: #222222;
+      --surface-subtle: #242424;
       --text: #e8e8e6;
       --text-mid: #bbbbbb;
       --text-light: #888888;
@@ -45,12 +45,12 @@
       --border-focus: #e8e8e6;
       --accent: #e8e8e6;
       --accent-text: #111111;
-      --btn-secondary-bg: #262626;
+      --btn-secondary-bg: #282828;
       --btn-secondary-text: #e8e8e6;
       --btn-danger-bg: #2d161a;
       --btn-danger-text: #fb7185;
       --btn-danger-border: #9f1239;
-      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+      --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
     }
 
     body {
@@ -59,14 +59,22 @@
       color: var(--text);
       line-height: 1.6;
       min-height: 100vh;
-      transition: background-color var(--transition), color var(--transition);
+      transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
       -webkit-font-smoothing: antialiased;
+    }
+
+    /* 전역 테마 전환 시 부드러운 페이드 효과 */
+    .card, li.note-item, li.empty-item, .top-bar, input, textarea, button, .theme-switch {
+      transition: background-color var(--transition-speed) ease,
+                  border-color var(--transition-speed) ease,
+                  color var(--transition-speed) ease,
+                  box-shadow var(--transition-speed) ease;
     }
 
     .container {
       max-width: 640px;
       margin: 0 auto;
-      padding: 40px 20px 80px;
+      padding: 44px 20px 80px;
     }
 
     /* 상단 네비게이션 헤더 */
@@ -74,7 +82,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 24px;
+      padding-bottom: 22px;
       border-bottom: 1px solid var(--border);
       margin-bottom: 36px;
     }
@@ -87,23 +95,53 @@
       color: var(--text-light);
     }
 
-    .theme-toggle-btn {
-      display: inline-flex;
+    /* 슬라이딩 스위치 토글 */
+    .theme-switch {
+      position: relative;
+      width: 52px;
+      height: 28px;
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      cursor: pointer;
+      padding: 2px;
+      display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-mid);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+    }
+    .theme-switch:hover {
+      border-color: var(--text-light);
+    }
+
+    .theme-switch-knob {
+      width: 22px;
+      height: 22px;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 20px;
-      cursor: pointer;
-      transition: all var(--transition);
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: translateX(0px);
+      transition: transform 0.32s cubic-bezier(0.34, 1.4, 0.64, 1),
+                  background-color var(--transition-speed) ease,
+                  border-color var(--transition-speed) ease;
     }
-    .theme-toggle-btn:hover {
-      border-color: var(--text-mid);
-      color: var(--text);
+
+    [data-theme="dark"] .theme-switch-knob {
+      transform: translateX(24px);
+    }
+
+    .theme-switch-icon {
+      font-size: 12px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.4s ease;
     }
 
     /* 메인 타이틀 */
@@ -130,7 +168,6 @@
       padding: 24px;
       box-shadow: var(--card-shadow);
       margin-bottom: 24px;
-      transition: background var(--transition), border-color var(--transition);
     }
 
     .card h2 {
@@ -157,7 +194,6 @@
       font-size: 14px;
       font-family: inherit;
       outline: none;
-      transition: border-color var(--transition), background var(--transition);
     }
     input:focus, textarea:focus {
       border-color: var(--border-focus);
@@ -175,7 +211,7 @@
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity var(--transition), transform 0.1s;
+      transition: opacity 0.2s, transform 0.1s;
     }
     .btn-primary:hover {
       opacity: 0.9;
@@ -193,7 +229,6 @@
       font-size: 12px;
       font-weight: 500;
       cursor: pointer;
-      transition: all var(--transition);
     }
     .btn-secondary:hover {
       border-color: var(--text-mid);
@@ -208,7 +243,6 @@
       font-size: 12px;
       font-weight: 500;
       cursor: pointer;
-      transition: all var(--transition);
     }
     .btn-danger:hover {
       opacity: 0.85;
@@ -241,9 +275,9 @@
 
     /* 메모 목록 */
     .section-title {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
       color: var(--text-light);
       margin-bottom: 14px;
@@ -266,7 +300,6 @@
       align-items: flex-start;
       gap: 16px;
       box-shadow: var(--card-shadow);
-      transition: all var(--transition);
     }
     li.note-item:hover {
       border-color: var(--text-muted);
@@ -309,12 +342,13 @@
 </head>
 <body>
   <div class="container">
-    <!-- 상단 헤더 및 테마 토글 -->
+    <!-- 상단 헤더 및 스위치 토글 -->
     <header class="top-bar">
       <div class="brand-tag">BYTE BACK · SECRET VAULT</div>
-      <button type="button" class="theme-toggle-btn" id="themeToggle" aria-label="테마 변경">
-        <span id="themeIcon">🌓</span>
-        <span id="themeLabel">모드 전환</span>
+      <button type="button" class="theme-switch" id="themeToggle" aria-label="테마 전환" role="switch" aria-checked="false">
+        <div class="theme-switch-knob">
+          <span class="theme-switch-icon" id="themeIcon">☀️</span>
+        </div>
       </button>
     </header>
 
@@ -360,27 +394,31 @@
   </div>
 
   <script type="module">
-    // 1. 시간대 감지 및 테마 토글 로직
+    // 1. 시간대 감지 및 슬라이딩 스위치 토글 로직
     (function initTheme() {
       const toggle = document.getElementById('themeToggle');
-      const themeIcon = document.getElementById('themeIcon');
-      const themeLabel = document.getElementById('themeLabel');
+      const icon = document.getElementById('themeIcon');
 
       function getTimeBasedTheme() {
         const hour = new Date().getHours();
-        // 오전 6시 ~ 오후 6시는 라이트 모드, 그 외 시간대는 다크 모드
         return (hour >= 6 && hour < 18) ? 'light' : 'dark';
       }
 
       function applyTheme(theme) {
         if (theme === 'dark') {
           document.documentElement.setAttribute('data-theme', 'dark');
-          if (themeIcon) themeIcon.textContent = '☀️';
-          if (themeLabel) themeLabel.textContent = '라이트 모드';
+          if (toggle) toggle.setAttribute('aria-checked', 'true');
+          if (icon) {
+            icon.textContent = '🌙';
+            icon.style.transform = 'rotate(360deg)';
+          }
         } else {
           document.documentElement.removeAttribute('data-theme');
-          if (themeIcon) themeIcon.textContent = '🌙';
-          if (themeLabel) themeLabel.textContent = '다크 모드';
+          if (toggle) toggle.setAttribute('aria-checked', 'false');
+          if (icon) {
+            icon.textContent = '☀️';
+            icon.style.transform = 'rotate(0deg)';
+          }
         }
       }
 
