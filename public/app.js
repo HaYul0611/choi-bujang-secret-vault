@@ -329,6 +329,32 @@ const AuthModule = {
     }
   },
 
+  // 일정 시간 후 자동으로 페이드아웃 및 숨김 처리하는 피드백 헬퍼
+  showFeedback(el, content, isHtml = false, duration = 4500) {
+    if (!el) return;
+    if (el._timer) clearTimeout(el._timer);
+    if (el._fadeTimer) clearTimeout(el._fadeTimer);
+
+    if (isHtml) {
+      el.innerHTML = content;
+    } else {
+      el.textContent = content;
+    }
+    el.style.opacity = '1';
+    el.style.transform = 'translateY(0)';
+    el.style.display = 'block';
+
+    el._timer = setTimeout(() => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(-4px)';
+      el._fadeTimer = setTimeout(() => {
+        el.style.display = 'none';
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+      }, 350);
+    }, duration);
+  },
+
   bindEvents() {
     this.tabLogin?.addEventListener('click', () => this.switchTab('login'));
     this.tabSignup?.addEventListener('click', () => this.switchTab('signup'));
@@ -355,8 +381,7 @@ const AuthModule = {
       e.preventDefault();
       const newPassword = this.mypageNewPassword.value;
       if (!newPassword || newPassword.length < 6) {
-        this.mypageError.textContent = '새 비밀번호는 최소 6자 이상이어야 합니다.';
-        this.mypageError.style.display = 'block';
+        this.showFeedback(this.mypageError, '새 비밀번호는 최소 6자 이상이어야 합니다.');
         return;
       }
       this.btnSubmitNewPassword.disabled = true;
@@ -380,12 +405,10 @@ const AuthModule = {
         if (!response.ok) {
           throw new Error(data.error || '비밀번호 변경에 실패했습니다.');
         }
-        this.mypageMsg.textContent = data.message || '비밀번호가 성공적으로 변경되었습니다.';
-        this.mypageMsg.style.display = 'block';
+        this.showFeedback(this.mypageMsg, data.message || '비밀번호가 성공적으로 변경되었습니다.');
         this.mypageNewPassword.value = '';
       } catch (err) {
-        this.mypageError.textContent = err.message || '비밀번호 변경 중 오류가 발생했습니다.';
-        this.mypageError.style.display = 'block';
+        this.showFeedback(this.mypageError, err.message || '비밀번호 변경 중 오류가 발생했습니다.');
       } finally {
         this.btnSubmitNewPassword.disabled = false;
         this.btnSubmitNewPassword.textContent = '변경 저장';
@@ -432,8 +455,7 @@ const AuthModule = {
         if (!response.ok) {
           throw new Error(data.error || '비밀번호 재설정 요청 실패');
         }
-        this.findMsg.textContent = data.message || '재설정 안내 링크가 이메일로 전송되었습니다.';
-        this.findMsg.style.display = 'block';
+        this.showFeedback(this.findMsg, data.message || '재설정 안내 링크가 이메일로 전송되었습니다.');
       } catch (err) {
         let msg = err.message || '재설정 처리 중 오류가 발생했습니다.';
         const lower = msg.toLowerCase();
@@ -442,8 +464,7 @@ const AuthModule = {
         } else if (lower.includes('email') && (lower.includes('invalid') || lower.includes('format'))) {
           msg = '유효하지 않은 이메일 주소 형식입니다.';
         }
-        this.findError.textContent = msg;
-        this.findError.style.display = 'block';
+        this.showFeedback(this.findError, msg);
       } finally {
         this.btnSubmitFind.disabled = false;
         this.btnSubmitFind.textContent = '재설정 링크 발송';
@@ -507,8 +528,12 @@ const AuthModule = {
           localStorage.setItem('auth_session', JSON.stringify(session));
           this.updateState(session);
         } else {
-          this.authMsg.innerHTML = '<strong>회원가입 완료!</strong><br>계정이 생성되었습니다. 이제 상단 [로그인] 탭을 눌러 로그인해 주세요.';
-          this.authMsg.style.display = 'block';
+          this.showFeedback(
+            this.authMsg,
+            '<strong>회원가입 완료!</strong><br>계정이 생성되었습니다. 이제 상단 [로그인] 탭을 눌러 로그인해 주세요.',
+            true,
+            7000
+          );
           this.switchTab('login');
         }
       }
@@ -530,8 +555,12 @@ const AuthModule = {
       } else if (lower.includes('failed to fetch') || lower.includes('network')) {
         msg = '네트워크 연결 상태를 확인해 주세요.';
       }
-      this.loginError.textContent = (this.authMode === 'login' ? '로그인 실패: ' : '회원가입 실패: ') + msg;
-      this.loginError.style.display = 'block';
+      this.showFeedback(
+        this.loginError,
+        (this.authMode === 'login' ? '로그인 실패: ' : '회원가입 실패: ') + msg,
+        false,
+        5000
+      );
     } finally {
       this.submitBtn.disabled = false;
       if (this.authMode === 'login') {
