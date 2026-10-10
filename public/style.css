@@ -940,6 +940,84 @@ li.empty-item {
 }
 
 /* ==========================================
+   보안 메모 수정 모달 폼 스타일
+   ========================================== */
+.modal-form-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modal-field-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-mid);
+  letter-spacing: -0.01em;
+}
+
+.modal-field-group input,
+.modal-field-group textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-subtle);
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: all var(--transition-speed) ease;
+}
+
+.modal-field-group textarea {
+  resize: vertical;
+  min-height: 96px;
+  line-height: 1.55;
+}
+
+.modal-field-group input:focus,
+.modal-field-group textarea:focus {
+  border-color: var(--border-focus);
+  background: var(--surface-solid);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.modal-action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.modal-action-buttons .btn-secondary,
+.modal-action-buttons .btn-primary {
+  padding: 10px 20px;
+  font-size: 13.5px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-action-buttons .btn-secondary:hover {
+  transform: translateY(-1px);
+}
+
+.modal-action-buttons .btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* ==========================================
    SVG 아이콘 및 배지 스타일
    ========================================== */
 .svg-badge-icon {

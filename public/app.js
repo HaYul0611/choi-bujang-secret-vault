@@ -70,6 +70,16 @@ const NotesModule = {
   cachedNotes: null,
   abortController: null,
 
+  // 수정 모달 엘리먼트
+  editModal: document.querySelector('#edit-modal'),
+  editForm: document.querySelector('#edit-note-form'),
+  editIdInput: document.querySelector('#edit-note-id'),
+  editTitleInput: document.querySelector('#edit-title-input'),
+  editBodyInput: document.querySelector('#edit-body-input'),
+  btnCloseEdit: document.querySelector('#btn-close-edit'),
+  btnCancelEdit: document.querySelector('#btn-cancel-edit'),
+  btnSubmitEdit: document.querySelector('#btn-submit-edit'),
+
   init() {
     if (this.formEl) {
       this.formEl.addEventListener('submit', (e) => this.handleCreateNote(e));
@@ -79,6 +89,20 @@ const NotesModule = {
         this.filterNotes(this.searchInput.value.trim());
       });
     }
+
+    // 수정 모달 이벤트 리스너 바인딩
+    this.btnCloseEdit?.addEventListener('click', () => this.closeEditModal());
+    this.btnCancelEdit?.addEventListener('click', () => this.closeEditModal());
+    this.editModal?.addEventListener('click', (e) => {
+      if (e.target === this.editModal) this.closeEditModal();
+    });
+    this.editForm?.addEventListener('submit', (e) => this.handleSubmitEdit(e));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.editModal && this.editModal.style.display !== 'none') {
+        this.closeEditModal();
+      }
+    });
   },
 
   filterNotes(keyword) {
@@ -252,29 +276,67 @@ const NotesModule = {
     }
   },
 
-  async handleEditNote(note) {
+  openEditModal(note) {
+    if (!this.editModal) return;
+    this.editIdInput.value = note.id;
+    this.editTitleInput.value = note.title || '';
+    this.editBodyInput.value = note.body || note.content || '';
+    this.editModal.style.display = 'flex';
+    setTimeout(() => {
+      this.editTitleInput.focus();
+      this.editTitleInput.select();
+    }, 60);
+  },
+
+  closeEditModal() {
+    if (!this.editModal) return;
+    this.editModal.style.display = 'none';
+  },
+
+  handleEditNote(note) {
+    this.openEditModal(note);
+  },
+
+  async handleSubmitEdit(e) {
+    e.preventDefault();
     const session = AuthModule.currentSession;
     if (!session || !session.access_token) return;
 
-    const newTitle = prompt('수정할 메모 제목:', note.title);
-    if (newTitle === null) return;
-    const newBody = prompt('수정할 메모 내용:', note.body || note.content || '');
-    if (newBody === null) return;
+    const id = this.editIdInput.value;
+    const title = this.editTitleInput.value.trim();
+    const body = this.editBodyInput.value.trim();
+
+    if (!title) {
+      alert('메모 제목을 입력해 주세요.');
+      this.editTitleInput.focus();
+      return;
+    }
+
+    if (this.btnSubmitEdit) {
+      this.btnSubmitEdit.disabled = true;
+      this.btnSubmitEdit.textContent = '수정 중...';
+    }
 
     try {
-      const res = await fetch(`/api/notes/${note.id}`, {
+      const res = await fetch(`/api/notes/${id}`, {
         method: 'PUT',
         headers: {
           'authorization': 'Bearer ' + session.access_token,
           'content-type': 'application/json'
         },
-        body: JSON.stringify({ title: newTitle, body: newBody })
+        body: JSON.stringify({ title, body })
       });
 
       if (!res.ok) throw new Error('메모 수정에 실패했습니다.');
+      this.closeEditModal();
       await this.fetchNotes(session, true);
     } catch (err) {
       alert(err.message);
+    } finally {
+      if (this.btnSubmitEdit) {
+        this.btnSubmitEdit.disabled = false;
+        this.btnSubmitEdit.textContent = '수정 완료';
+      }
     }
   },
 
