@@ -1,4 +1,4 @@
-﻿import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -54,13 +54,13 @@ export default async function handler(request, response) {
     auth: { persistSession: false },
   });
 
-  // GET: 메모 목록 조회
+  // GET: 메모 목록 조회 (본인 소유 메모만 조회)
   if (request.method === 'GET') {
     try {
       const { data, error } = await supabase
         .from('notes')
-        .select('id, title, body, owner_id')
-        .or(`owner_id.eq.${user.userId},owner_id.is.null`)
+        .select('id, title, body')
+        .eq('owner_id', user.userId)
         .order('created_at', { ascending: true });
 
       if (error) {
@@ -75,7 +75,7 @@ export default async function handler(request, response) {
     }
   }
 
-  // POST: 새 메모 생성
+  // POST: 새 메모 생성 (URL/본문의 owner_id를 믿지 않고 인증된 user.userId로 강제 저장)
   if (request.method === 'POST') {
     try {
       const body = typeof request.body === 'string' ? JSON.parse(request.body) : request.body;

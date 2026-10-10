@@ -58,12 +58,12 @@ export default async function handler(request, response) {
     auth: { persistSession: false },
   });
 
-  // GET: 단건 조회
+  // GET: 단건 조회 (본인 메모만 허용)
   if (request.method === 'GET') {
     try {
       const { data, error } = await supabase
         .from('notes')
-        .select('id, title, body')
+        .select('id, title, body, owner_id')
         .eq('id', id)
         .maybeSingle();
 
@@ -71,36 +71,8 @@ export default async function handler(request, response) {
         return response.status(404).json({ error: 'NOT_FOUND', message: '메모를 찾을 수 없습니다.' });
       }
 
-      return response.status(200).json({
-        id: data.id,
-        title: data.title,
-        body: data.body,
-      });
-    } catch {
-      return response.status(500).json({ error: 'INTERNAL_SERVER_ERROR' });
-    }
-  }
-
-  // PUT: 메모 수정 (3단계에서는 소유자 검증 없이 id로 수정)
-  if (request.method === 'PUT') {
-    try {
-      const body = typeof request.body === 'string' ? JSON.parse(request.body) : request.body;
-      const title = body?.title;
-      const content = body?.body ?? body?.content;
-
-      const updateData = {};
-      if (title !== undefined) updateData.title = title;
-      if (content !== undefined) updateData.body = content;
-
-      const { data, error } = await supabase
-        .from('notes')
-        .update(updateData)
-        .eq('id', id)
-        .select('id, title, body')
-        .maybeSingle();
-
-      if (error || !data) {
-        return response.status(404).json({ error: 'NOT_FOUND', message: '수정할 메모를 찾을 수 없습니다.' });
+      if (data.owner_id !== user.userId) {
+        return response.status(403).json({ error: 'FORBIDDEN', message: '접근 권한이 없습니다.' });
       }
 
       return response.status(200).json({
@@ -113,13 +85,83 @@ export default async function handler(request, response) {
     }
   }
 
-  // DELETE: 메모 삭제
+  // PUT: 메모 수정 (기존 행과 새 행 소유자가 모두 본인인지 확인)
+  if (request.method === 'PUT') {
+    try {
+      const body = typeof request.body === 'string' ? JSON.parse(request.body) : request.body;
+
+      // 본문에서 타인으로 소유자를 변경하려는 시도 차단
+      if (body?.owner_id !== undefined && body.owner_id !== user.userId) {
+        return response.status(403).json({ error: 'FORBIDDEN', message: '소유자를 변경할 수 없습니다.' });
+      }
+
+      // 기존 행 조회 및 소유자 확인
+      const { data: existing, error: fetchError } = await supabase
+        .from('notes')
+        .select('id, owner_id')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (fetchError || !existing) {
+        return response.status(404).json({ error: 'NOT_FOUND', message: '수정할 메모를 찾을 수 없습니다.' });
+      }
+
+      if (existing.owner_id !== user.userId) {
+        return response.status(403).json({ error: 'FORBIDDEN', message: '본인의 메모만 수정할 수 있습니다.' });
+      }
+
+      const title = body?.title;
+      const content = body?.body ?? body?.content;
+
+      const updateData = {};
+      if (title !== undefined) updateData.title = title;
+      if (content !== undefined) updateData.body = content;
+      updateData.owner_id = user.userId;
+
+      const { data, error } = await supabase
+        .from('notes')
+        .update(updateData)
+        .eq('id', id)
+        .eq('owner_id', user.userId)
+        .select('id, title, body')
+        .maybeSingle();
+
+      if (error || !data) {
+        return response.status(500).json({ error: 'FAILED_TO_UPDATE_NOTE' });
+      }
+
+      return response.status(200).json({
+        id: data.id,
+        title: data.title,
+        body: data.body,
+      });
+    } catch {
+      return response.status(500).json({ error: 'INTERNAL_SERVER_ERROR' });
+    }
+  }
+
+  // DELETE: 메모 삭제 (본인 메모만 삭제 허용)
   if (request.method === 'DELETE') {
     try {
+      const { data: existing, error: fetchError } = await supabase
+        .from('notes')
+        .select('id, owner_id')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (fetchError || !existing) {
+        return response.status(404).json({ error: 'NOT_FOUND', message: '삭제할 메모를 찾을 수 없습니다.' });
+      }
+
+      if (existing.owner_id !== user.userId) {
+        return response.status(403).json({ error: 'FORBIDDEN', message: '본인의 메모만 삭제할 수 있습니다.' });
+      }
+
       const { error } = await supabase
         .from('notes')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('owner_id', user.userId);
 
       if (error) {
         return response.status(500).json({ error: 'FAILED_TO_DELETE_NOTE' });

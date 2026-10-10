@@ -1,7 +1,7 @@
 // The student changes this check as each stage adds an attack to the same app.
 // Never return tokens, private keys, real names, or note bodies.
 export async function runAttackChecks(config) {
-  if (config.step !== 3) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
+  if (config.step !== 4) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
   let app;
   try {
     app = new URL(config.publicAppUrl);
@@ -9,7 +9,7 @@ export async function runAttackChecks(config) {
     throw new Error('aleph.config.json의 실제 배포 주소를 먼저 넣어 주세요.');
   }
   if (app.protocol !== 'https:' || app.username || app.password || app.search || app.hash
-      || app.pathname !== '/' || app.hostname.endsWith('.example')) {
+    || app.pathname !== '/' || app.hostname.endsWith('.example')) {
     throw new Error('aleph.config.json의 실제 배포 주소를 먼저 넣어 주세요.');
   }
 
@@ -37,6 +37,19 @@ export async function runAttackChecks(config) {
     // network error
   }
 
+  // 3) 비로그인 상태에서 /api/notes/:id 단건 요청 시 차단(401/403) 확인
+  let singleApiBlocked = false;
+  let singleApiStatus = 0;
+  try {
+    const res = await fetch(new URL('/api/notes/00000000-0000-0000-0000-000000000000', app), {
+      redirect: 'error', signal: AbortSignal.timeout(10000),
+    });
+    singleApiStatus = res.status;
+    singleApiBlocked = res.status === 401 || res.status === 403;
+  } catch {
+    // network error
+  }
+
   return [
     {
       attackId: 'anonymous_static_leak',
@@ -47,6 +60,11 @@ export async function runAttackChecks(config) {
       attackId: 'anonymous_api_read_blocked',
       expected: '비로그인 메모 목록 요청 시 401 또는 403 JSON 거부',
       observed: apiBlocked ? `비로그인 요청 차단 확인 (HTTP ${apiStatus})` : `비로그인 요청 차단 실패 (HTTP ${apiStatus})`,
+    },
+    {
+      attackId: 'anonymous_single_read_blocked',
+      expected: '비로그인 단건 메모 요청 시 401 또는 403 JSON 거부',
+      observed: singleApiBlocked ? `비로그인 단건 요청 차단 확인 (HTTP ${singleApiStatus})` : `비로그인 단건 요청 차단 실패 (HTTP ${singleApiStatus})`,
     },
   ];
 }
