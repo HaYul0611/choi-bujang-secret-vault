@@ -34,14 +34,14 @@ const ThemeModule = {
       document.documentElement.setAttribute('data-theme', 'dark');
       if (this.toggleBtn) this.toggleBtn.setAttribute('aria-checked', 'true');
       if (this.themeIcon) {
-        this.themeIcon.textContent = '🌙';
+        this.themeIcon.innerHTML = `<svg class="svg-moon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
         this.themeIcon.style.transform = 'rotate(360deg)';
       }
     } else {
       document.documentElement.removeAttribute('data-theme');
       if (this.toggleBtn) this.toggleBtn.setAttribute('aria-checked', 'false');
       if (this.themeIcon) {
-        this.themeIcon.textContent = '☀️';
+        this.themeIcon.innerHTML = `<svg class="svg-sun" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
         this.themeIcon.style.transform = 'rotate(0deg)';
       }
     }
@@ -295,10 +295,13 @@ const AuthModule = {
   btnCloseMypage: document.querySelector('#btn-close-mypage'),
   mypageEmailDisplay: document.querySelector('#mypage-email-display'),
   mypagePasswordForm: document.querySelector('#mypage-password-form'),
+  mypageCurrentPassword: document.querySelector('#mypage-current-password'),
   mypageNewPassword: document.querySelector('#mypage-new-password'),
   btnSubmitNewPassword: document.querySelector('#btn-submit-new-password'),
   mypageMsg: document.querySelector('#mypage-msg'),
   mypageError: document.querySelector('#mypage-error'),
+  pwdStrengthContainer: document.querySelector('#pwd-strength-container'),
+  pwdStrengthText: document.querySelector('#pwd-strength-text'),
 
   // ID / PW 찾기 요소
   btnOpenFind: document.querySelector('#btn-open-find'),
@@ -355,11 +358,59 @@ const AuthModule = {
     }, duration);
   },
 
+  // 3단계 비밀번호 보안 강도 실시간 분석 및 게이지 바 반영
+  updatePasswordStrength(password) {
+    if (!this.pwdStrengthContainer || !this.pwdStrengthText) return;
+    this.pwdStrengthContainer.classList.remove('level-weak', 'level-medium', 'level-strong');
+
+    if (!password) {
+      this.pwdStrengthText.textContent = '입력 대기';
+      return;
+    }
+
+    let score = 0;
+    if (password.length >= 6) score++;
+    if (password.length >= 8) score++;
+    if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    if (password.length < 6 || score <= 2) {
+      this.pwdStrengthContainer.classList.add('level-weak');
+      this.pwdStrengthText.textContent = '1단계: 보안 취약 (위험)';
+    } else if (score <= 4) {
+      this.pwdStrengthContainer.classList.add('level-medium');
+      this.pwdStrengthText.textContent = '2단계: 적정 수준 (양호)';
+    } else {
+      this.pwdStrengthContainer.classList.add('level-strong');
+      this.pwdStrengthText.textContent = '3단계: 매우 안전 (강력)';
+    }
+  },
+
   bindEvents() {
     this.tabLogin?.addEventListener('click', () => this.switchTab('login'));
     this.tabSignup?.addEventListener('click', () => this.switchTab('signup'));
     this.loginForm?.addEventListener('submit', (e) => this.handleSubmit(e));
     this.btnLogout?.addEventListener('click', () => this.handleLogout());
+
+    // 인라인 눈 모양(SVG) 비밀번호 표시 토글
+    document.querySelectorAll('.btn-toggle-eye').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-target');
+        const input = document.getElementById(targetId);
+        if (!input) return;
+
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+
+        const openIcon = btn.querySelector('.eye-open');
+        const closedIcon = btn.querySelector('.eye-closed');
+        if (openIcon && closedIcon) {
+          openIcon.style.display = isPassword ? 'none' : 'block';
+          closedIcon.style.display = isPassword ? 'block' : 'none';
+        }
+      });
+    });
 
     // 마이페이지 토글 및 닫기
     this.btnToggleMypage?.addEventListener('click', () => {
@@ -369,23 +420,41 @@ const AuthModule = {
         this.mypageEmailDisplay.textContent = this.currentSession.user.email;
         this.mypageMsg.style.display = 'none';
         this.mypageError.style.display = 'none';
-        this.mypageNewPassword.value = '';
+        if (this.mypageCurrentPassword) this.mypageCurrentPassword.value = '';
+        if (this.mypageNewPassword) this.mypageNewPassword.value = '';
+        this.updatePasswordStrength('');
       }
     });
     this.btnCloseMypage?.addEventListener('click', () => {
       this.mypagePanel.style.display = 'none';
     });
 
-    // 마이페이지 새 비밀번호 변경 저장
+    // 새 비밀번호 입력 시 실시간 보안 게이지 바 업데이트
+    this.mypageNewPassword?.addEventListener('input', () => {
+      this.updatePasswordStrength(this.mypageNewPassword.value);
+    });
+
+    // 마이페이지 현재 비밀번호 검증 & 새 비밀번호 변경 저장
     this.mypagePasswordForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const newPassword = this.mypageNewPassword.value;
+      const currentPassword = this.mypageCurrentPassword?.value;
+      const newPassword = this.mypageNewPassword?.value;
+
+      if (!currentPassword) {
+        this.showFeedback(this.mypageError, '현재 사용 중인 비밀번호를 입력해 주세요.');
+        return;
+      }
       if (!newPassword || newPassword.length < 6) {
         this.showFeedback(this.mypageError, '새 비밀번호는 최소 6자 이상이어야 합니다.');
         return;
       }
+      if (currentPassword === newPassword) {
+        this.showFeedback(this.mypageError, '새 비밀번호는 기존 비밀번호와 달라야 합니다.');
+        return;
+      }
+
       this.btnSubmitNewPassword.disabled = true;
-      this.btnSubmitNewPassword.textContent = '변경 처리 중...';
+      this.btnSubmitNewPassword.textContent = '보안 검증 및 변경 중...';
       this.mypageMsg.style.display = 'none';
       this.mypageError.style.display = 'none';
 
@@ -398,6 +467,7 @@ const AuthModule = {
           },
           body: JSON.stringify({
             action: 'update_password',
+            currentPassword,
             newPassword
           })
         });
@@ -406,12 +476,14 @@ const AuthModule = {
           throw new Error(data.error || '비밀번호 변경에 실패했습니다.');
         }
         this.showFeedback(this.mypageMsg, data.message || '비밀번호가 성공적으로 변경되었습니다.');
-        this.mypageNewPassword.value = '';
+        if (this.mypageCurrentPassword) this.mypageCurrentPassword.value = '';
+        if (this.mypageNewPassword) this.mypageNewPassword.value = '';
+        this.updatePasswordStrength('');
       } catch (err) {
         this.showFeedback(this.mypageError, err.message || '비밀번호 변경 중 오류가 발생했습니다.');
       } finally {
         this.btnSubmitNewPassword.disabled = false;
-        this.btnSubmitNewPassword.textContent = '변경 저장';
+        this.btnSubmitNewPassword.textContent = '비밀번호 변경 저장';
       }
     });
 

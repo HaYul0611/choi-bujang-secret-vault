@@ -133,10 +133,27 @@ body {
 }
 
 .status-indicator {
-  width: 6px;
-  height: 6px;
+  position: relative;
+  width: 7px;
+  height: 7px;
   background: var(--status-online);
   border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 6px var(--status-online);
+}
+
+.status-indicator::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1.5px solid var(--status-online);
+  animation: radarRing 2.2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+}
+
+@keyframes radarRing {
+  0% { transform: scale(0.6); opacity: 1; }
+  100% { transform: scale(2.6); opacity: 0; }
 }
 
 /* 히어로 섹션 */
@@ -844,4 +861,186 @@ li.empty-item {
   height: 1px;
   background: var(--border);
   margin: 16px 0;
+}
+
+/* ==========================================
+   SVG 아이콘 및 배지 스타일
+   ========================================== */
+.svg-badge-icon {
+  vertical-align: -2px;
+  margin-right: 5px;
+}
+
+.svg-inline-icon {
+  vertical-align: -2px;
+  margin-right: 4px;
+}
+
+/* ==========================================
+   비밀번호 입력 필드 눈 모양(SVG) 토글
+   ========================================== */
+.password-field-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.password-field-wrapper input {
+  width: 100%;
+  padding-right: 42px !important;
+  box-sizing: border-box;
+}
+
+.btn-toggle-eye {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.btn-toggle-eye:hover {
+  color: var(--text);
+  background: var(--surface-subtle);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.btn-toggle-eye:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.btn-toggle-eye .eye-icon {
+  display: block;
+}
+
+/* ==========================================
+   3단계 비밀번호 보안 강도 게이지 바
+   ========================================== */
+.pwd-strength-container {
+  background: var(--surface-solid);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-top: 6px;
+  margin-bottom: 10px;
+  transition: all 0.25s ease;
+}
+
+.pwd-strength-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  margin-bottom: 7px;
+}
+
+.pwd-strength-label {
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+.pwd-strength-text {
+  font-weight: 700;
+  color: var(--text-light);
+  letter-spacing: -0.01em;
+  transition: color 0.25s ease;
+}
+
+.pwd-strength-bar {
+  display: flex;
+  gap: 6px;
+  height: 5px;
+}
+
+.pwd-strength-step {
+  flex: 1;
+  height: 100%;
+  background: var(--border);
+  border-radius: 999px;
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 1단계: 취약 (빨강) */
+.pwd-strength-container.level-weak .pwd-strength-step:nth-child(1) {
+  background: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.35);
+}
+.pwd-strength-container.level-weak .pwd-strength-text {
+  color: #ef4444;
+}
+
+/* 2단계: 적정 (주황/황금색) */
+.pwd-strength-container.level-medium .pwd-strength-step:nth-child(1),
+.pwd-strength-container.level-medium .pwd-strength-step:nth-child(2) {
+  background: #f59e0b;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.35);
+}
+.pwd-strength-container.level-medium .pwd-strength-text {
+  color: #f59e0b;
+}
+
+/* 3단계: 안전 (초록색) */
+.pwd-strength-container.level-strong .pwd-strength-step {
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.35);
+}
+.pwd-strength-container.level-strong .pwd-strength-text {
+  color: #10b981;
+}
+
+/* ==========================================
+   자연스러운 마이크로 동적 인터랙션 효과
+   ========================================== */
+button:active {
+  transform: scale(0.98);
+}
+
+.btn-primary:active,
+.btn-secondary:active {
+  transform: scale(0.97);
+}
+
+.card,
+.notes-section {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.28s ease;
+}
+
+.card:hover,
+.notes-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
+}
+
+.note-item {
+  animation: noteItemEnter 0.32s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.note-item:hover {
+  transform: translateX(3px);
+  border-color: var(--border-hover);
+}
+
+@keyframes noteItemEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

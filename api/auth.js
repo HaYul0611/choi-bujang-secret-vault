@@ -75,9 +75,17 @@ export default async function handler(request, response) {
       if (!token) {
         return response.status(401).json({ error: '로그인 인증 세션이 만료되었습니다.' });
       }
+      const currentPassword = body?.currentPassword;
       const newPassword = body?.newPassword || password;
+
+      if (!currentPassword) {
+        return response.status(400).json({ error: '현재 사용 중인 비밀번호를 입력해 주세요.' });
+      }
       if (!newPassword || newPassword.length < 6) {
         return response.status(400).json({ error: '새 비밀번호는 최소 6자 이상이어야 합니다.' });
+      }
+      if (currentPassword === newPassword) {
+        return response.status(400).json({ error: '새 비밀번호는 기존 비밀번호와 달라야 합니다.' });
       }
 
       const { data: userData, error: userError } = await supabase.auth.getUser(token);
@@ -85,6 +93,16 @@ export default async function handler(request, response) {
         return response.status(401).json({ error: '유효한 로그인 세션이 아닙니다.' });
       }
 
+      // 1. 현재 비밀번호 검증
+      const { error: verifyError } = await supabase.auth.signInWithPassword({
+        email: userData.user.email,
+        password: currentPassword,
+      });
+      if (verifyError) {
+        return response.status(400).json({ error: '현재 비밀번호가 일치하지 않습니다. 다시 확인해 주세요.' });
+      }
+
+      // 2. 새 비밀번호로 업데이트
       const { error: updateError } = await supabase.auth.admin.updateUserById(userData.user.id, {
         password: newPassword,
       });
