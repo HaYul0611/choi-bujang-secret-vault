@@ -604,11 +604,14 @@ const AuthModule = {
     this.loginError.style.display = 'none';
     this.authMsg.style.display = 'none';
 
+    const authTabs = document.getElementById('auth-tabs');
     if (mode === 'login') {
+      authTabs?.classList.remove('is-signup');
       this.tabLogin.classList.add('active');
       this.tabSignup.classList.remove('active');
       this.submitBtn.textContent = '로그인';
     } else {
+      authTabs?.classList.add('is-signup');
       this.tabSignup.classList.add('active');
       this.tabLogin.classList.remove('active');
       this.submitBtn.textContent = '회원가입 완료';

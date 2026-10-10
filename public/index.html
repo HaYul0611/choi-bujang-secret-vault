@@ -41,7 +41,8 @@
       <section class="card" id="auth-container">
         <!-- 로그인 / 회원가입 섹션 (로그인 전 표시) -->
         <div id="login-section">
-          <div class="auth-tabs">
+          <div class="auth-tabs" id="auth-tabs">
+            <div class="tab-indicator" id="tab-indicator"></div>
             <button type="button" class="tab-btn active" id="tab-login">로그인</button>
             <button type="button" class="tab-btn" id="tab-signup">회원가입</button>
           </div>
@@ -101,8 +102,8 @@
                 </svg>
                 마이페이지 · 계정 보안 설정
               </span>
-              <button type="button" class="btn-close-sm" id="btn-close-mypage" aria-label="닫기">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+              <button type="button" class="btn-close-sm" id="btn-close-mypage" aria-label="닫기" title="닫기">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"/>
                   <line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
@@ -195,8 +196,8 @@
         <div class="modal-box">
           <div class="modal-header">
             <h3>ID / 비밀번호 찾기</h3>
-            <button type="button" class="btn-close-sm" id="btn-close-find" aria-label="닫기">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <button type="button" class="btn-close-sm" id="btn-close-find" aria-label="닫기" title="닫기">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"/>
                 <line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
