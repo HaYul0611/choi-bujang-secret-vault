@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BYTE BACK | ?먮졊???먮즺??/title>
+  <title>BYTE BACK | 점령된 자료실</title>
   <style>
     :root { color-scheme: dark; font-family: system-ui, sans-serif; }
     body { margin: 0; min-height: 100vh; background: #101a28; color: #ecf4ff; }
@@ -20,19 +20,19 @@
 </head>
 <body>
   <main>
-    <div class="eyebrow">BYTE BACK 쨌 1?④퀎 ?쇳빐 ?뺤씤</div>
-    <h1>?먮졊???먮즺??/h1>
-    <p>吏湲덉? 蹂댄샇 ?μ튂媛 ?녿뒗 ?곹깭?낅땲?? ?꾨옒 湲곕줉? 紐⑤몢 ?ㅼ뒿???꾪빐 留뚮뱺 媛???먮즺?낅땲??</p>
-    <div class="notice">濡쒓렇?명븯吏 ?딆? 諛⑸Ц?먮룄 ?먮즺瑜?蹂????덉뒿?덈떎. 怨듦컻 踰붿쐞瑜??뺤씤?섍퀬, ?ㅼ쓬 ?쒖옉 ?④퀎?먯꽌 ?묎렐??李⑤?濡?留됱븘 二쇱꽭??</div>
-    <ul id="notes" aria-live="polite"><li>媛???먮즺瑜?遺덈윭?ㅻ뒗 以묒엯?덈떎.</li></ul>
+    <div class="eyebrow">BYTE BACK · 2단계 자료 분리</div>
+    <h1>점령된 자료실</h1>
+    <p>지금은 보호 장치가 없는 상태입니다. 아래 기록은 모두 실습을 위해 만든 가상 자료입니다.</p>
+    <div class="notice">로그인하지 않은 방문자도 자료를 볼 수 있습니다. 공개 범위를 확인하고, 다음 제작 단계에서 접근을 차례로 막아 주세요.</div>
+    <ul id="notes" aria-live="polite"><li>가상 자료를 불러오는 중입니다.</li></ul>
   </main>
   <script type="module">
     const list = document.querySelector('#notes');
     try {
       const response = await fetch('/api/notes', { cache: 'no-store' });
-      if (!response.ok) throw new Error('怨듦컻 ?먮즺瑜??쎌쓣 ???놁뒿?덈떎.');
+      if (!response.ok) throw new Error('공개 자료를 읽을 수 없습니다.');
       const data = await response.json();
-      if (!Array.isArray(data.notes)) throw new Error('?먮즺 ?뺤떇??留욎? ?딆뒿?덈떎.');
+      if (!Array.isArray(data.notes)) throw new Error('자료 형식이 맞지 않습니다.');
       list.replaceChildren(...data.notes.map(note => {
         const item = document.createElement('li');
         const title = document.createElement('strong');
@@ -50,4 +50,3 @@
   </script>
 </body>
 </html>
-
