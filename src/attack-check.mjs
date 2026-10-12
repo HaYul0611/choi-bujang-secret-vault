@@ -1,7 +1,7 @@
 // The student changes this check as each stage adds an attack to the same app.
 // Never return tokens, private keys, real names, or note bodies.
 export async function runAttackChecks(config) {
-  if (config.step !== 6) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
+  if (config.step !== 7) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
   let app;
   try {
     app = new URL(config.publicAppUrl);
@@ -69,6 +69,19 @@ export async function runAttackChecks(config) {
     deciderBlocked = false;
   }
 
+  // 5) 7단계: 판정기 복합 이상 접속 추가 확인(step_up) 점검
+  let suspiciousStepUp = false;
+  let stepUpReason = '';
+  try {
+    const { decide } = await import('./decider.mjs');
+    const { suspicious } = (await import('../scripts/fixture-7.mjs')).fixtureRequests();
+    const res = await decide(suspicious);
+    suspiciousStepUp = res.decision === 'step_up' && res.reasonCode === 'step_up_required';
+    stepUpReason = res.reasonCode;
+  } catch {
+    suspiciousStepUp = false;
+  }
+
   return [
     {
       attackId: 'anonymous_static_leak',
@@ -89,6 +102,16 @@ export async function runAttackChecks(config) {
       attackId: 'unregistered_device_decider_blocked',
       expected: '미등록 기기의 판정 요청 시 deny 및 device_not_registered 반환',
       observed: deciderBlocked ? '미등록 기기 판정 거부 확인 (deny / device_not_registered)' : `미등록 기기 판정 거부 실패 (${deciderReason})`,
+    },
+    {
+      attackId: 'suspicious_access_step_up_required',
+      expected: '평소와 다른 시각·네트워크 및 대량 조회의 복합 이상 접속 시 step_up 및 step_up_required 반환',
+      observed: suspiciousStepUp ? '복합 이상 접속 추가 확인 요구 확인 (step_up / step_up_required)' : `복합 이상 판정 실패 (${stepUpReason})`,
+    },
+    {
+      attackId: 'live_step_up_reauth_blocking',
+      expected: '라이브 재로그인 시각 검증 계약 준비 시 실측 차단 (현재 계약 미지원)',
+      observed: '운영 계약 미준비 환경으로 실제 라이브 자료 차단 점검은 미실행으로 보존',
     },
   ];
 }

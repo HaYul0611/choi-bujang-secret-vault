@@ -78,6 +78,15 @@
 - 판정기 시험: `node scripts/decider-test.mjs`
 - 로컬 빌드: `npm run build -- --local`
 
+## 7단계: 평소와 다른 접속은 다시 확인합니다
+
+### 1. 현재 작동하는 기능과 다시 실행하는 방법
+- 판정기 입력에서 엔진이 검증해 넘긴 공인 가상 접속 신호(`source === 'judge_fixture'`)만 선별하여 위조 클라이언트 헤더가 정상 정보로 승격되는 것을 차단했습니다.
+- 평소와 다른 시각(`hour < 6 || hour >= 23`), 처음 보는 네트워크(`network === 'unusual'`), 대량 자료 읽기 사건(`count >= 10`)이 겹칠 때 지역 하나만으로 영구 차단하지 않고 추가 확인(`step_up`, 이유 코드: `step_up_required`)을 요구하는 규칙을 판정기에 구현했습니다.
+- 재인증이 완료된 요청(`stepUp.verified === true`)은 정상 허용(`allow`)으로 재판정되며, 기존 미등록 기기 차단 규칙(`device_registered`)은 최우선 순위로 보존됩니다.
+- 가상 사건 시험: `node scripts/fixture-7.mjs` 및 `node scripts/decider-test.mjs`
+- 로컬 빌드: `npm run build -- --local`
+
 ## 보너스 과제: 무차별 로그인 공격을 잡아 냅니다 (xdr-01)
 
 ### 1. 현재 작동하는 기능과 다시 실행하는 방법
