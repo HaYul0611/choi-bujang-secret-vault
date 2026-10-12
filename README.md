@@ -69,6 +69,15 @@
 - 서버 함수는 관리자 전용 서비스 롤 키(`SUPABASE_SECRET_KEY`)와 로그인/소유자 검증을 통해 본인 메모의 안전한 CRUD를 보존합니다.
 - 로컬 빌드: `npm run build -- --local`
 
+## 6단계: 등록한 기기만 자료실에 들어옵니다
+
+### 1. 현재 작동하는 기능과 다시 실행하는 방법
+- 보호 서비스 ID(`notes`)와 읽기 경로(`GET /api/notes`)를 `aleph.config.json`에 연결했습니다.
+- 학생 판정기(`src/decider.mjs`)에 등록 기기 검증 규칙(`device_registered`)을 구현하여 엔진이 확인한 등록 기기(`deviceRegistered: true`)와 사용자 바인딩 요청만 허용하고, 미등록 기기(`device_not_registered`) 및 확인 실패 요청은 거부하도록 구성했습니다.
+- 등록된 기기에서 기존 배포 주소로 접속 시 기존 시험 계정의 정상 읽기가 안전하게 유지됩니다.
+- 판정기 시험: `node scripts/decider-test.mjs`
+- 로컬 빌드: `npm run build -- --local`
+
 ## 보너스 과제: 무차별 로그인 공격을 잡아 냅니다 (xdr-01)
 
 ### 1. 현재 작동하는 기능과 다시 실행하는 방법

@@ -1,5 +1,5 @@
 {
-  "step": 5,
+  "step": 6,
   "repoUrl": "https://github.com/hayul0611/choi-bujang-secret-vault",
   "publicAppUrl": "https://choi-bujang-secret-vault-teal.vercel.app",
   "sampleMarker": "SAMPLE_NOTE_1",
@@ -9,6 +9,9 @@
     "jwksUrl": "https://jrsoosoflveipirsqokx.supabase.co/auth/v1/.well-known/jwks.json",
     "audience": "authenticated"
   },
+  "serviceId": "notes",
+  "service": "notes",
+  "readRoute": "GET /api/notes",
   "allowedRoutes": [
     "GET /api/notes",
     "POST /api/notes",

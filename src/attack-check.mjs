@@ -1,7 +1,7 @@
 // The student changes this check as each stage adds an attack to the same app.
 // Never return tokens, private keys, real names, or note bodies.
 export async function runAttackChecks(config) {
-  if (config.step !== 5) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
+  if (config.step !== 6) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
   let app;
   try {
     app = new URL(config.publicAppUrl);
@@ -56,6 +56,19 @@ export async function runAttackChecks(config) {
     }
   }
 
+  // 4) 6단계: 판정기 미등록 기기 차단 점검
+  let deciderBlocked = false;
+  let deciderReason = '';
+  try {
+    const { decide } = await import('./decider.mjs');
+    const { normal } = (await import('../scripts/fixture-7.mjs')).fixtureRequests();
+    const denied = await decide({ ...normal, deviceRegistered: false });
+    deciderBlocked = denied.decision === 'deny' && denied.reasonCode === 'device_not_registered';
+    deciderReason = denied.reasonCode;
+  } catch {
+    deciderBlocked = false;
+  }
+
   return [
     {
       attackId: 'anonymous_static_leak',
@@ -71,6 +84,11 @@ export async function runAttackChecks(config) {
       attackId: 'direct_origin_api_blocked',
       expected: '원본 자료 저장소 직접 요청 차단 (401/403/거부)',
       observed: originBlocked ? `원본 직접 요청 차단 확인 (HTTP ${originStatus})` : `원본 직접 요청 허용됨 (HTTP ${originStatus})`,
+    },
+    {
+      attackId: 'unregistered_device_decider_blocked',
+      expected: '미등록 기기의 판정 요청 시 deny 및 device_not_registered 반환',
+      observed: deciderBlocked ? '미등록 기기 판정 거부 확인 (deny / device_not_registered)' : `미등록 기기 판정 거부 실패 (${deciderReason})`,
     },
   ];
 }
