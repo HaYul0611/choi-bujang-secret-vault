@@ -68,3 +68,11 @@
 - Supabase DB `notes` 테이블에서 `PUBLIC`, `anon`, `authenticated`의 직접 접근 권한을 전면 회수(`REVOKE ALL`)하여 Data API(PostgREST) 직접 조회를 원천 차단했습니다.
 - 서버 함수는 관리자 전용 서비스 롤 키(`SUPABASE_SECRET_KEY`)와 로그인/소유자 검증을 통해 본인 메모의 안전한 CRUD를 보존합니다.
 - 로컬 빌드: `npm run build -- --local`
+
+## 보너스 과제: 무차별 로그인 공격을 잡아 냅니다 (xdr-01)
+
+### 1. 현재 작동하는 기능과 다시 실행하는 방법
+- Wazuh 모의 경보(`xdr/fixtures/brute-force.json`)에서 무차별 대입 및 비밀번호 스프레이 공격을 식별하는 MITRE ATT&CK T1110 기반 패턴 목록(`xdr/brute-force/patterns.json`)을 구성했습니다.
+- 격리 환경 판단 모듈(`xdr/brute-force/decide.mjs`)이 외부 import 없이 단독으로 동작하여 명확한 공격은 `block`, 애매한 시도는 `alert`, 정상 이벤트는 `record`로 판정합니다.
+- 연동 모듈(`xdr/brute-force/respond.mjs`)이 차단 후보에 대해 만료 시각과 근거 경보 번호가 담긴 ZTNA 거부 규칙을 등록하고 알림을 `xdr/alerts.log`에 기록합니다.
+- 다시 실행하는 방법: `npm run xdr:run -- brute-force`
