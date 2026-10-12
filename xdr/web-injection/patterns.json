@@ -1,0 +1,22 @@
+[
+  {
+    "name": "T1190-SQL-구문-주입",
+    "condition": "요청 인자나 URL에 데이터베이스 조회/조작 구문(SQL)을 이어 붙인 시도가 다수 반복 발생한 경우",
+    "rationale": "MITRE ATT&CK T1190(Exploit Public-Facing Application): 외부 입력값을 통해 비정상 SQL 쿼리를 삽입하여 데이터베이스 탈취나 조작을 시도하는 공격"
+  },
+  {
+    "name": "T1190-스크립트-명령어-삽입",
+    "condition": "요청 인자 내에 스크립트 태그, 삽입 표식, 명령 구분자 표기가 반복되거나 번갈아 나타난 경우",
+    "rationale": "MITRE ATT&CK T1190(Exploit Public-Facing Application): 웹 입력 폼에 스크립트나 명령 구분자를 밀어 넣어 악성 코드 실행을 유도하는 주입 공격"
+  },
+  {
+    "name": "T1190-경로-거슬러올라가기-탐색",
+    "condition": "파일 경로 인자에 상위 디렉터리 거슬러 올라가기(../) 표기나 경로 이탈 시도가 다수 반복된 경우",
+    "rationale": "MITRE ATT&CK T1190(Exploit Public-Facing Application): 웹 서버의 경로 검증 허점을 노려 비인가 시스템 파일에 접근하려는 디렉터리 경로 탐색 공격"
+  },
+  {
+    "name": "T1190-단발성-특수문자-입력-의심",
+    "condition": "따옴표, 수업용 키워드(select, script 등), 구분 문자가 1회성으로 포함되었으나 공격 반복이 없는 상태",
+    "rationale": "MITRE ATT&CK T1190(Exploit Public-Facing Application): 주입 공격의 초기 탐색 가능성과 정상 사용자의 단순 검색/오입력 가능성이 공존하는 경계선 신호"
+  }
+]

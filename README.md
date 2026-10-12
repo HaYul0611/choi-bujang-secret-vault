@@ -76,3 +76,11 @@
 - 격리 환경 판단 모듈(`xdr/brute-force/decide.mjs`)이 외부 import 없이 단독으로 동작하여 명확한 공격은 `block`, 애매한 시도는 `alert`, 정상 이벤트는 `record`로 판정합니다.
 - 연동 모듈(`xdr/brute-force/respond.mjs`)이 차단 후보에 대해 만료 시각과 근거 경보 번호가 담긴 ZTNA 거부 규칙을 등록하고 알림을 `xdr/alerts.log`에 기록합니다.
 - 다시 실행하는 방법: `npm run xdr:run -- brute-force`
+
+## 보너스 과제: 웹 주입 공격을 잡아 냅니다 (xdr-02)
+
+### 1. 현재 작동하는 기능과 다시 실행하는 방법
+- Wazuh 모의 경보(`xdr/fixtures/web-injection.json`)에서 SQL 주입, 스크립트/명령 삽입, 경로 거슬러 올라가기(../) 공격을 식별하는 MITRE ATT&CK T1190 기반 패턴 목록(`xdr/web-injection/patterns.json`)을 구축했습니다.
+- 격리 환경 판단 모듈(`xdr/web-injection/decide.mjs`)이 외부 import 없이 단독으로 동작하여 명확한 주입 공격은 `block`, 의심스러운 시도는 `alert`, 정상 이벤트는 `record`로 판정합니다.
+- 연동 모듈(`xdr/web-injection/respond.mjs`)이 차단 후보에 대해 만료 시각과 근거 경보 번호가 포함된 ZTNA 거부 규칙을 생성하고 알림을 `xdr/alerts.log`에 기록합니다.
+- 다시 실행하는 방법: `npm run xdr:run -- web-injection`
