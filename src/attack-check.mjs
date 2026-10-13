@@ -17,7 +17,7 @@ function zoneRequest(over) {
 }
 
 export async function runAttackChecks(config) {
-  if (config.step !== 8) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
+  if (config.step !== 9) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
   let app;
   try {
     app = new URL(config.publicAppUrl);
@@ -151,6 +151,28 @@ export async function runAttackChecks(config) {
     studentAnnounceWriteBlocked = false;
   }
 
+  // 12) 9단계: 10분 내 120건 초과 폭주 조회 탐지(propose_revocation) 점검
+  let burstDetectPassed = false;
+  let burstDetectResult = '';
+  try {
+    const { detect } = await import('./detect.mjs');
+    const start = Date.UTC(2026, 9, 1, 0, 0, 0);
+    const burstEvents = Array.from({ length: 121 }, (_, i) => ({
+      at: new Date(start + i * 2000).toISOString(),
+      method: 'GET',
+      identity: { sub: 'learner_victim' },
+      deviceId: 'dev_victim_01',
+    }));
+    const res = await detect(burstEvents);
+    burstDetectPassed = res?.action === 'propose_revocation'
+      && res?.reasonCode === 'burst_read'
+      && res?.subject === 'learner_victim';
+    burstDetectResult = res?.action ? `${res.action}/${res.reasonCode}` : 'unknown';
+  } catch (err) {
+    burstDetectPassed = false;
+    burstDetectResult = err.message;
+  }
+
   const staticBlocked = staticProbe.reached && (staticProbe.status === 404 || staticProbe.status === 410);
   const apiBlocked = apiProbe.reached && (apiProbe.status === 401 || apiProbe.status === 403);
   const announceBlocked = announceProbe.reached && (announceProbe.status === 401 || announceProbe.status === 403);
@@ -220,6 +242,11 @@ export async function runAttackChecks(config) {
       attackId: 'student_announcement_write_blocked',
       expected: '일반 학생의 공지 수정 요청 시 판정기에서 deny 및 unauthorized_operation 반환',
       observed: studentAnnounceWriteBlocked ? `학생 공지 수정 판정 거부 확인 (deny / ${studentAnnounceWriteReason})` : `학생 공지 수정 판정 거부 실패 (${studentAnnounceWriteReason})`,
+    },
+    {
+      attackId: 'burst_read_detection_revocation',
+      expected: '10분 내 120건 초과 폭주 조회 시 propose_revocation 및 burst_read 제안',
+      observed: burstDetectPassed ? `폭주 조회 회수 제안 확인 (propose_revocation / burst_read)` : `폭주 조회 회수 제안 실패 (${burstDetectResult})`,
     },
     {
       attackId: 'live_instructor_write_guard',

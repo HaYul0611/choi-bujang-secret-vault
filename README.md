@@ -103,6 +103,17 @@
 - Supabase에 `schema.sql`의 8단계 추가분(`announcements`·`instructors`)을 적용해야 공지 API가 정상 응답합니다.
 - 강사 공지 쓰기를 쓰려면 강사 계정의 `userId`를 `instructors` 테이블에 등록해야 합니다. 등록 전에는 모든 공지 쓰기가 403으로 차단됩니다.
 
+## 9단계: 도플갱어를 찾고 권한을 거둡니다
+
+### 1. 현재 작동하는 기능과 다시 실행하는 방법
+- 가상 사건 스트림(`src/detect.mjs`)에서 가명 사용자(`sub`), 기기(`deviceId`), 요청 종류(`method`), 판정(`decision`)만 선별하여 안전하게 읽고 본문·토큰·실명 등 민감 정보를 배제했습니다.
+- 동일 가명 주체의 `GET` 조회가 10분 구간 내에서 120건을 초과하는 폭주 조회(`burst_read`)를 슬라이딩 윈도우 알고리즘으로 탐지하여 확인된 단일 가상 기기 권한 회수 제안(`propose_revocation`, reasonCode: `burst_read`)을 반환합니다.
+- 단순 지역 이상(`region: 'foreign'`) 등 단일 지표나 10분 내 120건 이하의 정상 사건은 회수 제안 없이 관찰(`observe`) 상태를 유지합니다.
+- 기존 접속 허용/거부 판정기(`src/decider.mjs`)와 6~8단계 보호 규칙은 그대로 보존됩니다.
+- 탐지 시험: `node scripts/detect-test.mjs`
+- 자기 점검: `npm run bundle`
+- 로컬 빌드: `npm run build -- --local`
+
 ## 보너스 과제: 무차별 로그인 공격을 잡아 냅니다 (xdr-01)
 
 ### 1. 현재 작동하는 기능과 다시 실행하는 방법
