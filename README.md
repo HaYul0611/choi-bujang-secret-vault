@@ -129,3 +129,11 @@
 - 격리 환경 판단 모듈(`xdr/web-injection/decide.mjs`)이 외부 import 없이 단독으로 동작하여 명확한 주입 공격은 `block`, 의심스러운 시도는 `alert`, 정상 이벤트는 `record`로 판정합니다.
 - 연동 모듈(`xdr/web-injection/respond.mjs`)이 차단 후보에 대해 만료 시각과 근거 경보 번호가 포함된 ZTNA 거부 규칙을 생성하고 알림을 `xdr/alerts.log`에 기록합니다.
 - 다시 실행하는 방법: `npm run xdr:run -- web-injection`
+
+## 보너스 과제: 알려진 취약점 악용을 잡아 냅니다 (xdr-03)
+
+### 1. 현재 작동하는 기능과 다시 실행하는 방법
+- Wazuh 모의 경보(`xdr/fixtures/known-cve.json`)에서 Log4j(CVE-2021-44228) 원격 조회(JNDI) 및 취약점 점검 도구 악용을 식별하는 MITRE ATT&CK T1190 기반 패턴 목록(`xdr/known-cve/patterns.json`)을 구축했습니다.
+- 격리 환경 판단 모듈(`xdr/known-cve/decide.mjs`)이 외부 import 없이 단독으로 동작하여 명확한 원격 조회 주입 및 스캐너 악용은 `block`, 단순 검색/불완전 시도는 `alert`, 정상 이벤트는 `record`로 판정합니다.
+- 연동 모듈(`xdr/known-cve/respond.mjs`)이 차단 후보에 대해 만료 시각과 근거 경보 번호가 포함된 ZTNA 거부 규칙을 생성하고 알림을 `xdr/alerts.log`에 기록합니다.
+- 다시 실행하는 방법: `npm run xdr:run -- known-cve`
