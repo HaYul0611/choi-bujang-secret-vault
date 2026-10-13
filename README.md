@@ -87,6 +87,22 @@
 - 가상 사건 시험: `node scripts/fixture-7.mjs` 및 `node scripts/decider-test.mjs`
 - 로컬 빌드: `npm run build -- --local`
 
+## 8단계: 자료마다 갈 수 있는 구역을 나눕니다
+
+### 1. 현재 작동하는 기능과 다시 실행하는 방법
+- 메모(`notes`)와 강사 공지(`announcements`)를 서로 다른 자원 ID·경로로 분리하고 `aleph.config.json`의 `resources`와 `allowedRoutes`에 각 구역의 소유 기준·쓰기 권한을 선언했습니다.
+- 판정기(`src/decider.mjs`)에 구역 판별 규칙(`zone_resource_scope`)을 추가하여 엔진이 정규화한 `route`가 고정 허용 목록(`/notes`, `/notes/:id`, `/announcements`, `/announcements/:id`)에 맞고 선언 서비스와 경로 구역이 일치할 때만 허용합니다. 알 수 없는 자원, 구역 혼선, `:id` 깊이에 숨긴 기능 경로(예: `/notes/:id/export`)는 거부합니다.
+- 공지 자료 API(`api/announcements/index.js`, `api/announcements/[id].js`)는 요청 본문의 `role`이나 `author_id`를 믿지 않고, 검증된 `userId`를 DB 강사 명부(`instructors`)와 대조하여 강사만 공지 쓰기를 허용하고 작성자 본인만 수정·삭제하도록 재확인합니다. 일반 학생의 공지 수정·삭제는 `403 Forbidden`으로 차단됩니다.
+- 기존 6단계 미등록 기기 차단과 7단계 복합 이상 접속 추가 확인 규칙은 최우선 순위로 보존됩니다.
+- DB 스키마: `schema.sql`에 `announcements`·`instructors` 테이블을 추가하고 두 표 모두 RLS 활성화와 `anon`·`authenticated`·`public` 권한 전면 회수(`REVOKE ALL`)를 적용했습니다. Data API(PostgREST) 직접 접근을 원천 차단하고 서버 함수의 서비스 롤 키만 접근합니다.
+- 판정기 시험: `node scripts/decider-test.mjs` 및 `node scripts/fixture-7.mjs`
+- 자기 점검: `npm run bundle` (배포 환경에서 라이브 fetch 점검 수행)
+- 로컬 빌드: `npm run build -- --local`
+
+### 2. 배포 환경에서 추가로 적용할 것
+- Supabase에 `schema.sql`의 8단계 추가분(`announcements`·`instructors`)을 적용해야 공지 API가 정상 응답합니다.
+- 강사 공지 쓰기를 쓰려면 강사 계정의 `userId`를 `instructors` 테이블에 등록해야 합니다. 등록 전에는 모든 공지 쓰기가 403으로 차단됩니다.
+
 ## 보너스 과제: 무차별 로그인 공격을 잡아 냅니다 (xdr-01)
 
 ### 1. 현재 작동하는 기능과 다시 실행하는 방법

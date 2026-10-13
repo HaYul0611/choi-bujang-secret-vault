@@ -1,5 +1,5 @@
 {
-  "step": 7,
+  "step": 8,
   "repoUrl": "https://github.com/hayul0611/choi-bujang-secret-vault",
   "publicAppUrl": "https://choi-bujang-secret-vault-teal.vercel.app",
   "sampleMarker": "SAMPLE_NOTE_1",
@@ -12,12 +12,29 @@
   "serviceId": "notes",
   "service": "notes",
   "readRoute": "GET /api/notes",
+  "resources": {
+    "notes": {
+      "service": "notes",
+      "ownership": "owner_id",
+      "writeRoles": ["owner"]
+    },
+    "announcements": {
+      "service": "announcements",
+      "ownership": "author_id",
+      "writeRoles": ["instructor"]
+    }
+  },
   "allowedRoutes": [
     "GET /api/notes",
     "POST /api/notes",
     "GET /api/notes/:id",
     "PUT /api/notes/:id",
     "DELETE /api/notes/:id",
+    "GET /api/announcements",
+    "GET /api/announcements/:id",
+    "POST /api/announcements",
+    "PUT /api/announcements/:id",
+    "DELETE /api/announcements/:id",
     "POST /api/auth"
   ],
   "originalApiUrl": "https://jrsoosoflveipirsqokx.supabase.co/rest/v1/notes",

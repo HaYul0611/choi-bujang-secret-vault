@@ -1,7 +1,23 @@
 // The student changes this check as each stage adds an attack to the same app.
 // Never return tokens, private keys, real names, or note bodies.
+import { createHash, randomUUID } from 'node:crypto';
+
+// 판정기에 보낼 가상 요청의 공통 모양입니다(계약 18개 이름만 사용).
+function zoneRequest(over) {
+  return {
+    schema: 'aleph.decision.v1', requestId: randomUUID(), classId: 'class_fixture',
+    projectId: 'project_fixture', subjectId: 'learner_fixture', deviceId: 'a'.repeat(16),
+    service: 'notes', method: 'GET', path: '/notes/demo', route: 'GET /notes/:id',
+    queryLength: 0, querySha256: createHash('sha256').update('').digest('hex'),
+    at: new Date().toISOString(), policyRevision: 1, deviceRegistered: true,
+    stepUp: { verified: false, authAgeSeconds: null }, recentEvents: [],
+    signals: { source: 'judge_fixture', region: 'local', network: 'usual', hour: 14 },
+    ...over,
+  };
+}
+
 export async function runAttackChecks(config) {
-  if (config.step !== 7) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
+  if (config.step !== 8) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
   let app;
   try {
     app = new URL(config.publicAppUrl);
@@ -13,63 +29,44 @@ export async function runAttackChecks(config) {
     throw new Error('aleph.config.json의 실제 배포 주소를 먼저 넣어 주세요.');
   }
 
+  // 네트워크에 실제로 닿은 요청만 상태 코드를 기록하고, 닿지 못한 요청은
+  // 임의의 통과/실패로 보고하지 않고 미실행(reached:false)으로 남깁니다.
+  const probe = async (url, options) => {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(10000), ...options });
+      return { reached: true, status: res.status };
+    } catch {
+      return { reached: false, status: 0 };
+    }
+  };
+
   // 1) 정적 /data.json 노출 차단 점검
-  let staticStatus = 404;
-  try {
-    const res = await fetch(new URL('/data.json', app), {
-      redirect: 'error', signal: AbortSignal.timeout(10000),
-    });
-    staticStatus = res.status;
-  } catch {
-    // 404
-  }
+  const staticProbe = await probe(new URL('/data.json', app), { redirect: 'error' });
 
   // 2) 비로그인 상태에서 /api/notes 직접 요청 시 차단(401/403) 확인
-  let apiBlocked = false;
-  let apiStatus = 0;
-  try {
-    const res = await fetch(new URL('/api/notes', app), {
-      redirect: 'error', signal: AbortSignal.timeout(10000),
-    });
-    apiStatus = res.status;
-    apiBlocked = res.status === 401 || res.status === 403;
-  } catch {
-    // network error
-  }
+  const apiProbe = await probe(new URL('/api/notes', app), { redirect: 'error' });
 
-  // 3) 원본 자료 API(originalApiUrl) 직접 요청 시 차단 확인
-  let originBlocked = false;
-  let originStatus = 0;
-  if (config.originalApiUrl) {
-    try {
-      const res = await fetch(config.originalApiUrl, {
-        headers: {
-          'apikey': 'anon-test',
-        },
-        signal: AbortSignal.timeout(10000),
-      });
-      originStatus = res.status;
-      originBlocked = res.status === 401 || res.status === 403 || res.status === 404;
-    } catch {
-      originBlocked = true;
-      originStatus = 403;
-    }
-  }
+  // 3) 비로그인 상태에서 /api/announcements 직접 요청 시 차단(401/403) 확인
+  const announceProbe = await probe(new URL('/api/announcements', app), { redirect: 'error' });
 
-  // 4) 6단계: 판정기 미등록 기기 차단 점검
+  // 4) 원본 자료 API(originalApiUrl) 직접 요청 시 차단 확인
+  const originProbe = config.originalApiUrl
+    ? await probe(config.originalApiUrl, { headers: { apikey: 'anon-test' } })
+    : { reached: false, status: 0 };
+
+  // 5) 6단계: 판정기 미등록 기기 차단 점검(보존)
   let deciderBlocked = false;
   let deciderReason = '';
   try {
     const { decide } = await import('./decider.mjs');
-    const { normal } = (await import('../scripts/fixture-7.mjs')).fixtureRequests();
-    const denied = await decide({ ...normal, deviceRegistered: false });
+    const denied = await decide(zoneRequest({ deviceRegistered: false }));
     deciderBlocked = denied.decision === 'deny' && denied.reasonCode === 'device_not_registered';
     deciderReason = denied.reasonCode;
   } catch {
     deciderBlocked = false;
   }
 
-  // 5) 7단계: 판정기 복합 이상 접속 추가 확인(step_up) 점검
+  // 6) 7단계: 판정기 복합 이상 접속 추가 확인(step_up) 점검(보존)
   let suspiciousStepUp = false;
   let stepUpReason = '';
   try {
@@ -82,21 +79,112 @@ export async function runAttackChecks(config) {
     suspiciousStepUp = false;
   }
 
+  // 7) 8단계: 구역 혼선 차단 점검. service=notes인데 공지 경로로 들어온 요청은 거부되어야 합니다.
+  let crossZoneBlocked = false;
+  let crossZoneReason = '';
+  try {
+    const { decide } = await import('./decider.mjs');
+    const res = await decide(zoneRequest({
+      service: 'notes', method: 'GET', path: '/announcements/x', route: 'GET /announcements/:id',
+    }));
+    crossZoneBlocked = res.decision === 'deny';
+    crossZoneReason = res.reasonCode;
+  } catch {
+    crossZoneBlocked = false;
+  }
+
+  // 8) 8단계: :id 깊이에 숨긴 기능 경로(export 등) 위장 요청은 거부되어야 합니다.
+  let hiddenRouteBlocked = false;
+  let hiddenRouteReason = '';
+  try {
+    const { decide } = await import('./decider.mjs');
+    const res = await decide(zoneRequest({
+      service: 'notes', method: 'GET', path: '/notes/x/export', route: 'GET /notes/:id/export',
+    }));
+    hiddenRouteBlocked = res.decision === 'deny';
+    hiddenRouteReason = res.reasonCode;
+  } catch {
+    hiddenRouteBlocked = false;
+  }
+
+  // 9) 8단계: 공지 구역의 정상 읽기는 메모 구역과 분리되어 허용되어야 합니다.
+  let announceZoneAllowed = false;
+  let announceZoneReason = '';
+  try {
+    const { decide } = await import('./decider.mjs');
+    const res = await decide(zoneRequest({
+      service: 'announcements', method: 'GET', path: '/announcements', route: 'GET /announcements',
+    }));
+    announceZoneAllowed = res.decision === 'allow';
+    announceZoneReason = res.reasonCode;
+  } catch {
+    announceZoneAllowed = false;
+  }
+
+  // 10) 8단계: 다른 사용자의 메모 조회 시 판정기 거부(deny) 점검
+  let otherNoteBlocked = false;
+  let otherNoteReason = '';
+  try {
+    const { decide } = await import('./decider.mjs');
+    const res = await decide(zoneRequest({
+      subjectId: 'learner_b', service: 'notes', method: 'GET',
+      path: '/notes/learner_a', route: 'GET /notes/:id',
+    }));
+    otherNoteBlocked = res.decision === 'deny';
+    otherNoteReason = res.reasonCode;
+  } catch {
+    otherNoteBlocked = false;
+  }
+
+  // 11) 8단계: 일반 학생의 공지 수정 요청 시 판정기 거부(deny) 점검
+  let studentAnnounceWriteBlocked = false;
+  let studentAnnounceWriteReason = '';
+  try {
+    const { decide } = await import('./decider.mjs');
+    const res = await decide(zoneRequest({
+      subjectId: 'learner_a', service: 'announcements', method: 'PUT',
+      path: '/announcements/demo', route: 'PUT /announcements/:id',
+    }));
+    studentAnnounceWriteBlocked = res.decision === 'deny';
+    studentAnnounceWriteReason = res.reasonCode;
+  } catch {
+    studentAnnounceWriteBlocked = false;
+  }
+
+  const staticBlocked = staticProbe.reached && (staticProbe.status === 404 || staticProbe.status === 410);
+  const apiBlocked = apiProbe.reached && (apiProbe.status === 401 || apiProbe.status === 403);
+  const announceBlocked = announceProbe.reached && (announceProbe.status === 401 || announceProbe.status === 403);
+  const originBlocked = originProbe.reached
+    && (originProbe.status === 401 || originProbe.status === 403 || originProbe.status === 404);
+
   return [
     {
       attackId: 'anonymous_static_leak',
       expected: '정적 /data.json에서 가상 메모 문장 미노출 (404 또는 메모 0건)',
-      observed: `정적 가상 메모 노출 차단 확인 (HTTP ${staticStatus})`,
+      observed: !staticProbe.reached ? '배포 주소 연결 불가로 미실행(보존)'
+        : staticBlocked ? `정적 가상 메모 노출 차단 확인 (HTTP ${staticProbe.status})`
+          : `정적 가상 메모 노출 차단 실패 (HTTP ${staticProbe.status})`,
     },
     {
       attackId: 'anonymous_api_read_blocked',
       expected: '비로그인 메모 목록 요청 시 401 또는 403 JSON 거부',
-      observed: apiBlocked ? `비로그인 요청 차단 확인 (HTTP ${apiStatus})` : `비로그인 요청 차단 실패 (HTTP ${apiStatus})`,
+      observed: !apiProbe.reached ? '배포 주소 연결 불가로 미실행(보존)'
+        : apiBlocked ? `비로그인 메모 요청 차단 확인 (HTTP ${apiProbe.status})`
+          : `비로그인 메모 요청 차단 실패 (HTTP ${apiProbe.status})`,
+    },
+    {
+      attackId: 'anonymous_announcement_read_blocked',
+      expected: '비로그인 공지 목록 요청 시 401 또는 403 JSON 거부',
+      observed: !announceProbe.reached ? '배포 주소 연결 불가로 미실행(보존)'
+        : announceBlocked ? `비로그인 공지 요청 차단 확인 (HTTP ${announceProbe.status})`
+          : `비로그인 공지 요청 차단 실패 (HTTP ${announceProbe.status})`,
     },
     {
       attackId: 'direct_origin_api_blocked',
       expected: '원본 자료 저장소 직접 요청 차단 (401/403/거부)',
-      observed: originBlocked ? `원본 직접 요청 차단 확인 (HTTP ${originStatus})` : `원본 직접 요청 허용됨 (HTTP ${originStatus})`,
+      observed: !originProbe.reached ? '원본 API 연결 불가로 미실행(보존)'
+        : originBlocked ? `원본 직접 요청 차단 확인 (HTTP ${originProbe.status})`
+          : `원본 직접 요청 허용됨 (HTTP ${originProbe.status})`,
     },
     {
       attackId: 'unregistered_device_decider_blocked',
@@ -109,9 +197,34 @@ export async function runAttackChecks(config) {
       observed: suspiciousStepUp ? '복합 이상 접속 추가 확인 요구 확인 (step_up / step_up_required)' : `복합 이상 판정 실패 (${stepUpReason})`,
     },
     {
-      attackId: 'live_step_up_reauth_blocking',
-      expected: '라이브 재로그인 시각 검증 계약 준비 시 실측 차단 (현재 계약 미지원)',
-      observed: '운영 계약 미준비 환경으로 실제 라이브 자료 차단 점검은 미실행으로 보존',
+      attackId: 'cross_zone_path_blocked',
+      expected: '선언 서비스와 다른 구역 경로로 들어온 요청은 deny 반환',
+      observed: crossZoneBlocked ? `구역 혼선 요청 거부 확인 (deny / ${crossZoneReason})` : `구역 혼선 요청 거부 실패 (${crossZoneReason})`,
+    },
+    {
+      attackId: 'hidden_function_route_blocked',
+      expected: ':id 깊이에 숨긴 기능 경로(export 등) 위장 요청은 deny 반환',
+      observed: hiddenRouteBlocked ? `기능 경로 위장 요청 거부 확인 (deny / ${hiddenRouteReason})` : `기능 경로 위장 요청 거부 실패 (${hiddenRouteReason})`,
+    },
+    {
+      attackId: 'announcement_zone_isolated_allow',
+      expected: '공지 구역 정상 읽기는 메모 구역과 분리되어 allow 반환',
+      observed: announceZoneAllowed ? `공지 구역 분리 허용 확인 (allow / ${announceZoneReason})` : `공지 구역 분리 허용 실패 (${announceZoneReason})`,
+    },
+    {
+      attackId: 'other_user_note_read_blocked',
+      expected: '타인 메모 조회 시도 시 판정기에서 deny 및 unauthorized_operation 반환',
+      observed: otherNoteBlocked ? `타인 메모 요청 판정 거부 확인 (deny / ${otherNoteReason})` : `타인 메모 요청 판정 거부 실패 (${otherNoteReason})`,
+    },
+    {
+      attackId: 'student_announcement_write_blocked',
+      expected: '일반 학생의 공지 수정 요청 시 판정기에서 deny 및 unauthorized_operation 반환',
+      observed: studentAnnounceWriteBlocked ? `학생 공지 수정 판정 거부 확인 (deny / ${studentAnnounceWriteReason})` : `학생 공지 수정 판정 거부 실패 (${studentAnnounceWriteReason})`,
+    },
+    {
+      attackId: 'live_instructor_write_guard',
+      expected: '라이브 환경에서 일반 학생의 공지 수정 요청 시 403 차단 (실제 로그인 토큰 필요)',
+      observed: '운영 로그인 토큰 미발급 환경으로 라이브 강사 권한 재확인 점검은 미실행으로 보존',
     },
   ];
 }
