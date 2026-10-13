@@ -145,3 +145,11 @@
 - 격리 환경 판단 모듈(`xdr/persistence/decide.mjs`)이 외부 import 없이 단독으로 동작하여 명확한 지속성 확보 시도는 `block`, 수업 도구 유사 명칭이나 단순 설명 변경은 `alert`, 정상 이벤트는 `record`로 판정합니다.
 - 연동 모듈(`xdr/persistence/respond.mjs`)이 차단 후보에 대해 만료 시각과 근거 경보 번호가 포함된 ZTNA 거부 규칙을 생성하고 알림을 `xdr/alerts.log`에 기록합니다.
 - 다시 실행하는 방법: `npm run xdr:run -- persistence`
+
+## 보너스 과제: 권한 상승 공격을 잡아 냅니다 (xdr-05)
+
+### 1. 현재 작동하는 기능과 다시 실행하는 방법
+- Wazuh 모의 경보(`xdr/fixtures/privilege.json`)에서 비인가 관리자 그룹 등록, 특권 명령 악용, 업무 외 시간 권한 남용을 식별하는 MITRE ATT&CK T1068 및 T1078 기반 패턴 목록(`xdr/privilege/patterns.json`)을 구축했습니다.
+- 격리 환경 판단 모듈(`xdr/privilege/decide.mjs`)이 외부 import 없이 단독으로 동작하여 명확한 권한 상승 및 도용 시도는 `block`, 일반 과제 그룹 변경이나 단발성 시도는 `alert`, 정상 이벤트는 `record`로 판정합니다.
+- 연동 모듈(`xdr/privilege/respond.mjs`)이 차단 후보에 대해 만료 시각과 근거 경보 번호가 포함된 ZTNA 거부 규칙을 생성하고 알림을 `xdr/alerts.log`에 기록합니다.
+- 다시 실행하는 방법: `npm run xdr:run -- privilege`
