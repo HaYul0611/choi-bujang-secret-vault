@@ -17,7 +17,7 @@ function zoneRequest(over) {
 }
 
 export async function runAttackChecks(config) {
-  if (config.step !== 9) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
+  if (config.step !== 10) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
   let app;
   try {
     app = new URL(config.publicAppUrl);
@@ -173,6 +173,47 @@ export async function runAttackChecks(config) {
     burstDetectResult = err.message;
   }
 
+  // 13) 10단계: 침해 전 안전 정책 사본 검증 및 변경 범위 사전 확인(Dry-run) 점검
+  let policyRestorePreviewPassed = false;
+  let policyRestorePreviewResult = '';
+  try {
+    const { getVerifiedBaselineSnapshot, previewPolicyRestore } = await import('./restore.mjs');
+    const safeBackup = getVerifiedBaselineSnapshot();
+    const preview = previewPolicyRestore(safeBackup, {
+      version: 'test-compromised',
+      ruleIds: ['device_registered'],
+      allowedRoutes: ['GET /api/notes', 'POST /api/admin/backdoor'],
+      resources: { notes: { service: 'notes', ownership: 'owner_id', writeRoles: ['owner'] } },
+    });
+    policyRestorePreviewPassed = preview.readyToRestore === true
+      && preview.restoreVersion === 9
+      && preview.diffSummary.routes.unauthorizedAdded.includes('POST /api/admin/backdoor');
+    policyRestorePreviewResult = policyRestorePreviewPassed ? '통과' : '사전 확인 불일치';
+  } catch (err) {
+    policyRestorePreviewPassed = false;
+    policyRestorePreviewResult = err.message;
+  }
+
+  // 14) 10단계: 비공개 가상 메모 사본 단건 복원(ID·소유자·내용 해시 대조) 점검
+  let singleNoteRestorePassed = false;
+  let singleNoteRestoreResult = '';
+  try {
+    const { restoreSingleNote, PRIVATE_NOTES_BACKUP } = await import('../api/notes/restore.js');
+    const noteB = PRIVATE_NOTES_BACKUP.find(n => n.owner_id === 'learner_b');
+    const restored = await restoreSingleNote({
+      id: noteB.id,
+      ownerId: 'learner_b',
+      contentHash: noteB.contentHash,
+    });
+    singleNoteRestorePassed = restored.id === noteB.id
+      && restored.owner_id === 'learner_b'
+      && restored.contentHash === noteB.contentHash;
+    singleNoteRestoreResult = singleNoteRestorePassed ? '통과' : '단건 복원 불일치';
+  } catch (err) {
+    singleNoteRestorePassed = false;
+    singleNoteRestoreResult = err.message;
+  }
+
   const staticBlocked = staticProbe.reached && (staticProbe.status === 404 || staticProbe.status === 410);
   const apiBlocked = apiProbe.reached && (apiProbe.status === 401 || apiProbe.status === 403);
   const announceBlocked = announceProbe.reached && (announceProbe.status === 401 || announceProbe.status === 403);
@@ -247,6 +288,16 @@ export async function runAttackChecks(config) {
       attackId: 'burst_read_detection_revocation',
       expected: '10분 내 120건 초과 폭주 조회 시 propose_revocation 및 burst_read 제안',
       observed: burstDetectPassed ? `폭주 조회 회수 제안 확인 (propose_revocation / burst_read)` : `폭주 조회 회수 제안 실패 (${burstDetectResult})`,
+    },
+    {
+      attackId: 'policy_restore_preview_verified',
+      expected: '침해 전 안전 정책 사본 무결성 검증 및 사전 변경 diff 계산 확인',
+      observed: policyRestorePreviewPassed ? '안전 정책 사본 검증 및 복원 계획 사전 확인 완료 (v9 복원 대기)' : `사본 사전 확인 실패 (${policyRestorePreviewResult})`,
+    },
+    {
+      attackId: 'single_note_restore_verified',
+      expected: '비공개 가상 메모 사본에서 시험 계정 B의 메모가 ID·소유자·내용 해시 일치로 복원됨',
+      observed: singleNoteRestorePassed ? '시험 계정 B의 비공개 메모 단건 복원 확인 (ID·소유자·해시 일치)' : `단건 복원 실패 (${singleNoteRestoreResult})`,
     },
     {
       attackId: 'live_instructor_write_guard',

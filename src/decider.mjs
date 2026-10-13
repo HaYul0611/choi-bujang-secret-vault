@@ -32,7 +32,7 @@ const READ_METHODS = Object.freeze(['GET', 'HEAD']);
 const WRITE_METHODS = Object.freeze(['POST', 'PUT', 'DELETE']);
 
 const FORBIDDEN_ID_NAMES = Object.freeze([
-  'export', 'import', 'backup', 'admin', 'batch', 'download', 'share', 'internal'
+  'export', 'import', 'backup', 'restore', 'admin', 'batch', 'download', 'share', 'internal'
 ]);
 
 const deny = (request, reasonCode, ruleIds) => ({
