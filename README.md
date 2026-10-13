@@ -153,3 +153,11 @@
 - 격리 환경 판단 모듈(`xdr/privilege/decide.mjs`)이 외부 import 없이 단독으로 동작하여 명확한 권한 상승 및 도용 시도는 `block`, 일반 과제 그룹 변경이나 단발성 시도는 `alert`, 정상 이벤트는 `record`로 판정합니다.
 - 연동 모듈(`xdr/privilege/respond.mjs`)이 차단 후보에 대해 만료 시각과 근거 경보 번호가 포함된 ZTNA 거부 규칙을 생성하고 알림을 `xdr/alerts.log`에 기록합니다.
 - 다시 실행하는 방법: `npm run xdr:run -- privilege`
+
+## 보너스 과제: 데이터 유출 공격을 잡아 냅니다 (xdr-06)
+
+### 1. 현재 작동하는 기능과 다시 실행하는 방법
+- Wazuh 모의 경보(`xdr/fixtures/exfiltration.json`)에서 미승인 목적지 대용량 전송, 업무 외 시간 압축 파일 반출, C2 명령 통로 유출을 식별하는 MITRE ATT&CK T1041 및 T1048 기반 패턴 목록(`xdr/exfiltration/patterns.json`)을 구축했습니다.
+- 격리 환경 판단 모듈(`xdr/exfiltration/decide.mjs`)이 외부 import 없이 단독으로 동작하여 명확한 유출 시도는 `block`, 소용량 전송이나 수업 자료 동기화는 `alert`, 정상 이벤트는 `record`로 판정합니다.
+- 연동 모듈(`xdr/exfiltration/respond.mjs`)이 차단 후보에 대해 만료 시각과 근거 경보 번호가 포함된 ZTNA 거부 규칙을 생성하고 알림을 `xdr/alerts.log`에 기록합니다.
+- 다시 실행하는 방법: `npm run xdr:run -- exfiltration`
