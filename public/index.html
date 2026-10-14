@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BYTE BACK · 보안 금고</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0a0d14">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -12,217 +14,178 @@
 </head>
 <body>
   <div class="app-container">
-    <!-- 상단 헤더 -->
+    <div id="offline-banner" class="offline-banner" style="display: none;" role="alert">
+      <span class="offline-icon">⚠️</span> 오프라인 상태입니다. 네트워크 연결이 필요합니다. 오프라인에서는 안전을 위해 보호 자료를 표시하지 않습니다.
+    </div>
+
     <header class="top-bar">
-      <div class="brand-tag">
-        <span class="brand-dot"></span>
-        BYTE BACK · SECRET VAULT
-      </div>
-      <div class="header-status-badge">
-        <span class="status-indicator"></span> 시스템 정상 보호 중
-      </div>
+      <div class="brand-tag"><span class="brand-dot"></span>BYTE BACK · SECRET VAULT</div>
+      <div class="header-status-badge"><span class="status-indicator"></span> 시스템 정상 보호 중</div>
     </header>
 
-    <!-- 히어로 섹션 -->
     <section class="hero">
-      <div class="hero-badge">
-        <svg class="svg-badge-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-        SECURED VAULT
-      </div>
+      <div class="hero-badge">🔒 SECURED VAULT</div>
       <h1>점령된 자료실</h1>
       <p>인가된 신원만 안전하게 열람 및 관리할 수 있는 격리된 보안 금고입니다.</p>
+
+      <div class="device-status-bar" id="device-status-bar">
+        <div class="device-status-content">
+          <span class="device-status-dot" id="device-status-dot"></span>
+          <span class="device-status-label">기기 승인 상태:</span>
+          <span class="device-status-text" id="device-status-text">서버 확인 대기 중</span>
+        </div>
+        <span class="device-status-note">※ 설치 표시나 화면 버튼만으로 기기 확인이 완료되지 않으며, 서버 및 판정기의 검증 결과만 유효합니다.</span>
+      </div>
     </section>
 
-    <!-- 메인 대시보드 레이아웃 -->
     <main class="main-layout" id="main-layout">
-      <!-- 1. 인증 및 메모 작성 카드 -->
-      <section class="card" id="auth-container">
-        <!-- 로그인 / 회원가입 섹션 (로그인 전 표시) -->
-        <div id="login-section">
-          <div class="auth-tabs" id="auth-tabs">
-            <div class="tab-indicator" id="tab-indicator"></div>
-            <button type="button" class="tab-btn active" id="tab-login">로그인</button>
-            <button type="button" class="tab-btn" id="tab-signup">회원가입</button>
-          </div>
-          
-          <form class="form-group" id="login-form">
-            <input type="email" id="login-email" placeholder="이메일 주소" required autocomplete="email" />
-            <div class="password-field-wrapper">
-              <input type="password" id="login-password" placeholder="비밀번호 (6자 이상)" required autocomplete="current-password" />
-              <button type="button" class="btn-toggle-eye" data-target="login-password" aria-label="비밀번호 표시 전환" title="비밀번호 표시/숨김">
-                <svg class="eye-icon eye-open" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-                <svg class="eye-icon eye-closed" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                  <line x1="1" y1="1" x2="23" y2="23"/>
-                </svg>
-              </button>
+      <div class="auth-column" id="auth-column">
+        <section class="card" id="auth-container" style="display: none;">
+          <div id="login-section">
+            <div class="auth-tabs" id="auth-tabs">
+              <div class="tab-indicator" id="tab-indicator"></div>
+              <button type="button" class="tab-btn active" id="tab-login">로그인</button>
+              <button type="button" class="tab-btn" id="tab-signup">회원가입</button>
             </div>
-            <div class="caps-warning" id="login-caps-warning" style="display: none;">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2L4 10h5v12h6V10h5z"/>
-              </svg>
-              Caps Lock이 켜져 있습니다
-            </div>
-            <button type="submit" class="btn-primary" id="btn-login">로그인</button>
-          </form>
-
-          <div class="auth-helper-row">
-            <button type="button" class="link-btn" id="btn-open-find">ID / 비밀번호 찾기</button>
-          </div>
-
-          <div class="auth-message-msg" id="auth-msg" style="display: none;"></div>
-          <div class="auth-error-msg" id="login-error" style="display: none;"></div>
-        </div>
-
-        <!-- 사용자 세션 & 메모 작성 섹션 (로그인 후 표시) -->
-        <div id="user-section" style="display: none;">
-          <div class="user-bar">
-            <div class="user-badge">
-              <span class="user-badge-label">접속 계정:</span>
-              <strong id="user-email-display"></strong>
-            </div>
-            <div class="user-actions">
-              <button type="button" class="btn-secondary" id="btn-toggle-mypage">마이페이지</button>
-              <button type="button" class="btn-secondary" id="btn-logout">로그아웃</button>
-            </div>
-          </div>
-
-          <!-- 마이페이지 계정 수정 패널 -->
-          <div id="mypage-panel" class="mypage-panel" style="display: none;">
-            <div class="mypage-header">
-              <span class="mypage-title">
-                <svg class="svg-inline-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="3"/>
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                </svg>
-                마이페이지 · 계정 보안 설정
-              </span>
-              <button type="button" class="btn-close-sm" id="btn-close-mypage" aria-label="닫기" title="닫기">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/>
-                  <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </button>
-            </div>
-            <div class="mypage-info">
-              <div class="mypage-row">
-                <span class="mypage-label">인증 계정</span>
-                <span class="mypage-val" id="mypage-email-display"></span>
-              </div>
-              <div class="mypage-row">
-                <span class="mypage-label">보안 상태</span>
-                <span class="mypage-status-tag">
-                  <svg class="svg-inline-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                  </svg>
-                  격리 RLS 보호 적용
-                </span>
-              </div>
-            </div>
-            <form id="mypage-password-form" class="mypage-form">
-              <label for="mypage-current-password" class="field-label">현재 비밀번호</label>
+            
+            <form class="form-group" id="login-form">
+              <input type="email" id="login-email" placeholder="이메일 주소" required autocomplete="email" />
               <div class="password-field-wrapper">
-                <input type="password" id="mypage-current-password" placeholder="현재 사용 중인 비밀번호" required autocomplete="current-password" />
-                <button type="button" class="btn-toggle-eye" data-target="mypage-current-password" aria-label="비밀번호 표시 전환" title="비밀번호 표시/숨김">
-                  <svg class="eye-icon eye-open" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                  </svg>
-                  <svg class="eye-icon eye-closed" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                    <line x1="1" y1="1" x2="23" y2="23"/>
-                  </svg>
+                <input type="password" id="login-password" placeholder="비밀번호 (6자 이상)" required autocomplete="current-password" />
+                <button type="button" class="btn-toggle-eye" data-target="login-password" aria-label="비밀번호 표시 전환" title="비밀번호 표시/숨김">
+                  <span class="eye-open">👁️</span>
+                  <span class="eye-closed" style="display: none;">🔒</span>
                 </button>
               </div>
-
-              <label for="mypage-new-password" class="field-label">새 비밀번호</label>
-              <div class="password-field-wrapper">
-                <input type="password" id="mypage-new-password" placeholder="새 비밀번호 (6자 이상)" required autocomplete="new-password" />
-                <button type="button" class="btn-toggle-eye" data-target="mypage-new-password" aria-label="비밀번호 표시 전환" title="비밀번호 표시/숨김">
-                  <svg class="eye-icon eye-open" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                  </svg>
-                  <svg class="eye-icon eye-closed" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                    <line x1="1" y1="1" x2="23" y2="23"/>
-                  </svg>
-                </button>
-              </div>
-
-              <!-- Caps Lock 경고 -->
-              <div class="caps-warning" id="mypage-caps-warning" style="display: none;">
-                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 2L4 10h5v12h6V10h5z"/>
-                </svg>
-                Caps Lock이 켜져 있습니다
-              </div>
-
-              <!-- 3단계 비밀번호 보안 강도 게이지 바 (입력 시에만 노출) -->
-              <div class="pwd-strength-container" id="pwd-strength-container" style="display: none;">
-                <div class="pwd-strength-header">
-                  <span class="pwd-strength-label">보안 강도:</span>
-                  <span class="pwd-strength-text" id="pwd-strength-text">입력 대기</span>
-                </div>
-                <div class="pwd-strength-bar">
-                  <div class="pwd-strength-step" id="strength-step-1"></div>
-                  <div class="pwd-strength-step" id="strength-step-2"></div>
-                  <div class="pwd-strength-step" id="strength-step-3"></div>
-                </div>
-              </div>
-
-              <button type="submit" class="btn-primary" id="btn-submit-new-password">비밀번호 변경 저장</button>
+              <div class="caps-warning" id="login-caps-warning" style="display: none;">⚠️ Caps Lock이 켜져 있습니다</div>
+              <button type="submit" class="btn-primary" id="btn-login">로그인</button>
             </form>
-            <div id="mypage-msg" class="auth-message-msg" style="display: none;"></div>
-            <div id="mypage-error" class="auth-error-msg" style="display: none;"></div>
+
+            <div class="auth-helper-row">
+              <button type="button" class="link-btn" id="btn-open-find">ID / 비밀번호 찾기</button>
+            </div>
+
+            <div class="auth-message-msg" id="auth-msg" style="display: none;"></div>
+            <div class="auth-error-msg" id="login-error" style="display: none;"></div>
           </div>
 
-          <div class="card-subtitle">새 보안 메모 작성</div>
-          <form class="form-group" id="create-note-form">
-            <input type="text" id="new-note-title" placeholder="새 메모 제목" required />
-            <textarea id="new-note-body" placeholder="보관할 메모 본문 내용을 입력하세요" rows="4" required></textarea>
-            <button type="submit" class="btn-primary" id="btn-create-note">메모 저장</button>
-          </form>
-        </div>
-      </section>
+          <div id="user-section" style="display: none;">
+            <div class="user-bar">
+              <div class="user-badge">
+                <span class="user-badge-label">접속 계정:</span>
+                <strong id="user-email-display"></strong>
+              </div>
+              <div class="user-actions">
+                <button type="button" class="btn-secondary" id="btn-toggle-mypage">마이페이지</button>
+                <button type="button" class="btn-secondary" id="btn-logout">로그아웃</button>
+              </div>
+            </div>
 
-      <!-- ID / 비밀번호 찾기 모달 -->
+            <div id="mypage-panel" class="mypage-panel" style="display: none;">
+              <div class="mypage-header">
+                <span class="mypage-title">⚙️ 마이페이지 · 계정 보안 설정</span>
+                <button type="button" class="btn-close-sm" id="btn-close-mypage" aria-label="닫기" title="닫기">✕</button>
+              </div>
+              <div class="mypage-info">
+                <div class="mypage-row"><span class="mypage-label">인증 계정</span><span class="mypage-val" id="mypage-email-display"></span></div>
+                <div class="mypage-row"><span class="mypage-label">보안 상태</span><span class="mypage-status-tag">🛡️ 격리 RLS 보호 적용</span></div>
+              </div>
+              <form id="mypage-password-form" class="mypage-form">
+                <label for="mypage-current-password" class="field-label">현재 비밀번호</label>
+                <div class="password-field-wrapper">
+                  <input type="password" id="mypage-current-password" placeholder="현재 사용 중인 비밀번호" required autocomplete="current-password" />
+                  <button type="button" class="btn-toggle-eye" data-target="mypage-current-password" aria-label="비밀번호 표시 전환" title="비밀번호 표시/숨김">
+                    <span class="eye-open">👁️</span>
+                    <span class="eye-closed" style="display: none;">🔒</span>
+                  </button>
+                </div>
+
+                <label for="mypage-new-password" class="field-label">새 비밀번호</label>
+                <div class="password-field-wrapper">
+                  <input type="password" id="mypage-new-password" placeholder="새 비밀번호 (6자 이상)" required autocomplete="new-password" />
+                  <button type="button" class="btn-toggle-eye" data-target="mypage-new-password" aria-label="비밀번호 표시 전환" title="비밀번호 표시/숨김">
+                    <span class="eye-open">👁️</span>
+                    <span class="eye-closed" style="display: none;">🔒</span>
+                  </button>
+                </div>
+
+                <div class="caps-warning" id="mypage-caps-warning" style="display: none;">⚠️ Caps Lock이 켜져 있습니다</div>
+
+                <div class="pwd-strength-container" id="pwd-strength-container" style="display: none;">
+                  <div class="pwd-strength-header">
+                    <span class="pwd-strength-label">보안 강도:</span>
+                    <span class="pwd-strength-text" id="pwd-strength-text">입력 대기</span>
+                  </div>
+                  <div class="pwd-strength-bar">
+                    <div class="pwd-strength-step" id="strength-step-1"></div>
+                    <div class="pwd-strength-step" id="strength-step-2"></div>
+                    <div class="pwd-strength-step" id="strength-step-3"></div>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn-primary" id="btn-submit-new-password">비밀번호 변경 저장</button>
+              </form>
+              <div id="mypage-msg" class="auth-message-msg" style="display: none;"></div>
+              <div id="mypage-error" class="auth-error-msg" style="display: none;"></div>
+            </div>
+
+            <div class="card-subtitle">새 보안 메모 작성</div>
+            <form class="form-group" id="create-note-form">
+              <input type="text" id="new-note-title" placeholder="새 메모 제목" required />
+              <textarea id="new-note-body" placeholder="보관할 메모 본문 내용을 입력하세요" rows="4" required></textarea>
+              <button type="submit" class="btn-primary" id="btn-create-note">메모 저장</button>
+            </form>
+          </div>
+        </section>
+
+        <section class="card" id="device-approval-card">
+          <div class="card-header-simple">
+            <div class="card-title-group">
+              <h3>🖥️ 접속 기기 승인 관리</h3>
+            </div>
+            <span class="card-desc-sm">서버가 확인한 등록 기기만 보호 자료실에 접근할 수 있습니다.</span>
+          </div>
+
+          <div class="device-approval-body">
+            <div class="device-info-table">
+              <div class="device-info-row">
+                <span class="device-info-label">접속 클라이언트:</span>
+                <span class="device-client-text">웹 브라우저 클라이언트</span>
+              </div>
+              <div class="device-info-row">
+                <span class="device-info-label">서버 검증 결과:</span>
+                <span class="device-badge" id="device-badge-display">확인 대기 중</span>
+              </div>
+            </div>
+
+            <form id="device-approval-form" class="device-approval-form">
+              <input type="text" id="device-name-input" placeholder="기기 명칭 (기본값: 웹 브라우저 클라이언트)" />
+              <button type="submit" class="btn-primary" id="btn-request-device-approval">서버에 기기 승인 요청</button>
+            </form>
+
+            <div id="device-approval-msg" class="auth-message-msg" style="display: none;"></div>
+            <div id="device-approval-error" class="auth-error-msg" style="display: none;"></div>
+
+            <div class="device-approval-notice">
+              ※ 설치 표시나 화면 버튼만으로 기기 확인이 끝나지 않으며, 서버 판정기의 실제 검증을 거친 결과만 유효합니다.
+            </div>
+          </div>
+        </section>
+      </div>
+
       <div id="find-modal" class="modal-backdrop" style="display: none;">
         <div class="modal-box">
           <div class="modal-header">
             <h3>ID / 비밀번호 찾기</h3>
-            <button type="button" class="btn-close-sm" id="btn-close-find" aria-label="닫기" title="닫기">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
+            <button type="button" class="btn-close-sm" id="btn-close-find" aria-label="닫기" title="닫기">✕</button>
           </div>
           <div class="modal-body">
             <div class="find-guide-card">
-              <div class="guide-title">
-                <svg class="svg-inline-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="16" x2="12" y2="12"/>
-                  <line x1="12" y1="8" x2="12.01" y2="8"/>
-                </svg>
-                아이디(ID) 안내
-              </div>
+              <div class="guide-title">ℹ️ 아이디(ID) 안내</div>
               <p class="guide-desc">본 보안 금고의 로그인 아이디는 회원가입 시 등록하신 <strong>이메일 주소 전체</strong>입니다.</p>
             </div>
             <div class="modal-divider"></div>
-            <div class="guide-title">
-              <svg class="svg-inline-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 2l-2 2m-1.5 1.5L16 7l-1.5-1.5-1.5 1.5 1.5 1.5-3 3A6 6 0 1 1 5 6a6 6 0 0 1 5.3 3.2L19 3.5 21 2z"/>
-              </svg>
-              비밀번호(PW) 재설정
-            </div>
+            <div class="guide-title">🔑 비밀번호(PW) 재설정</div>
             <p class="guide-desc">가입하신 이메일 주소를 입력하시면 비밀번호 재설정 링크를 발송해 드립니다.</p>
             <form id="find-password-form" class="form-group">
               <input type="email" id="find-email-input" placeholder="가입한 이메일 주소" required />
@@ -234,17 +197,11 @@
         </div>
       </div>
 
-      <!-- 보안 메모 수정 모달 (브라우저 기본 prompt 대체) -->
       <div id="edit-modal" class="modal-backdrop" style="display: none;">
         <div class="modal-box">
           <div class="modal-header">
             <h3>보안 메모 수정</h3>
-            <button type="button" class="btn-close-sm" id="btn-close-edit" aria-label="닫기" title="닫기">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
+            <button type="button" class="btn-close-sm" id="btn-close-edit" aria-label="닫기" title="닫기">✕</button>
           </div>
           <div class="modal-body">
             <form id="edit-note-form" class="modal-form-vertical">
@@ -266,35 +223,25 @@
         </div>
       </div>
 
-      <!-- 2. 보관된 메모 목록 섹션 (로그인 후 활성화) -->
       <section class="notes-section" id="notes-section" style="display: none;">
         <div class="section-header">
           <div class="section-title">보관된 메모 목록</div>
           <div class="note-count-badge" id="notes-count">보안 보관 중</div>
         </div>
 
-        <!-- 실시간 메모 검색 바 -->
         <div class="notes-search-wrapper">
-          <svg class="search-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
+          <span class="search-icon">🔍</span>
           <input type="search" id="notes-search-input" placeholder="보관된 메모 제목 또는 본문 검색..." autocomplete="off" />
         </div>
 
-        <ul id="notes" aria-live="polite">
-          <li class="empty-item">자료실 동기화 중...</li>
-        </ul>
+        <ul id="notes" aria-live="polite"></ul>
       </section>
     </main>
   </div>
 
-  <!-- 화면 우측 하단 플로팅 테마 스위치 토글 -->
   <aside class="floating-theme-container">
     <button type="button" class="theme-switch" id="themeToggle" aria-label="테마 전환" role="switch" aria-checked="false" title="화면 모드 전환">
-      <div class="theme-switch-knob">
-        <span class="theme-switch-icon" id="themeIcon"></span>
-      </div>
+      <div class="theme-switch-knob"><span class="theme-switch-icon" id="themeIcon"></span></div>
     </button>
   </aside>
 

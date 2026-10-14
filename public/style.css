@@ -200,10 +200,46 @@ body {
   transition: all var(--transition-speed) ease;
 }
 
-/* 1) 로그인 전 화면: 정갈한 온보딩 뷰 (카드 중앙 집중) */
+/* 온보딩 & 인증/기기 관리 컬럼 (상하 카드 간격 유지) */
+.auth-column {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 100%;
+}
+
+/* 1) 로그인 전 화면: 좌우 2열 그리드로 정갈하게 나란히 배치 */
 .main-layout:not(.logged-in) {
-  max-width: 460px;
-  margin: 20px auto 0;
+  max-width: 960px;
+  margin: 24px auto 0;
+  width: 100%;
+}
+
+.main-layout:not(.logged-in) .auth-column {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items: stretch;
+}
+
+/* 기기 승인 전(auth-container 비표시 상태): 기기 승인 카드를 중앙 단독 배치 */
+.main-layout:not(.logged-in) .auth-column:has(#auth-container[style*="display: none"]) {
+  display: flex;
+  justify-content: center;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+@media (max-width: 860px) {
+  .main-layout:not(.logged-in) {
+    max-width: 480px;
+  }
+
+  .main-layout:not(.logged-in) .auth-column {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
 }
 
 /* 2) 로그인 후 화면: 2열 와이드 대시보드 그리드 */
@@ -1276,3 +1312,148 @@ button:active {
 .notes-search-wrapper input:not(:placeholder-shown) + .search-icon {
   color: var(--accent);
 }
+
+/* 11단계: 오프라인 안내 배너 */
+.offline-banner {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #f59e0b;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* 11단계: 기기 승인 상태 바 */
+.device-status-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 10px 16px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.device-status-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.device-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f59e0b; /* 기본: 대기(주황) */
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
+  transition: all 0.2s ease;
+}
+
+.device-status-dot.approved {
+  background: #10b981; /* 승인: 초록 */
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+}
+
+.device-status-dot.rejected {
+  background: #ef4444; /* 거부: 빨강 */
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+}
+
+.device-status-label {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.device-status-text {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.device-status-note {
+  font-size: 11px;
+  color: var(--text-light);
+  text-align: center;
+}
+
+/* 기기 승인 카드 스타일 (11단계) */
+.card-header-simple {
+  margin-bottom: 14px;
+}
+.card-desc-sm {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.device-approval-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.device-info-table {
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.device-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+}
+.device-client-text {
+  font-size: 12px;
+  color: var(--text-mid);
+  background: var(--surface-solid);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+.device-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+.device-badge.approved {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+.device-approval-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.device-approval-form input {
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-solid);
+  color: var(--text);
+  font-size: 13px;
+}
+.device-approval-notice {
+  font-size: 11px;
+  color: var(--text-light);
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+

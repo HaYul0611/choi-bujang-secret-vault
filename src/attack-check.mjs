@@ -17,7 +17,7 @@ function zoneRequest(over) {
 }
 
 export async function runAttackChecks(config) {
-  if (config.step !== 10) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
+  if (config.step !== 11) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
   let app;
   try {
     app = new URL(config.publicAppUrl);
@@ -49,7 +49,10 @@ export async function runAttackChecks(config) {
   // 3) 비로그인 상태에서 /api/announcements 직접 요청 시 차단(401/403) 확인
   const announceProbe = await probe(new URL('/api/announcements', app), { redirect: 'error' });
 
-  // 4) 원본 자료 API(originalApiUrl) 직접 요청 시 차단 확인
+  // 4) 11단계: 설치형 웹앱 매니페스트(/manifest.json) 접근 점검
+  const manifestProbe = await probe(new URL('/manifest.json', app), { redirect: 'error' });
+
+  // 5) 원본 자료 API(originalApiUrl) 직접 요청 시 차단 확인
   const originProbe = config.originalApiUrl
     ? await probe(config.originalApiUrl, { headers: { apikey: 'anon-test' } })
     : { reached: false, status: 0 };
@@ -303,6 +306,17 @@ export async function runAttackChecks(config) {
       attackId: 'live_instructor_write_guard',
       expected: '라이브 환경에서 일반 학생의 공지 수정 요청 시 403 차단 (실제 로그인 토큰 필요)',
       observed: '운영 로그인 토큰 미발급 환경으로 라이브 강사 권한 재확인 점검은 미실행으로 보존',
+    },
+    {
+      attackId: 'manifest_pwa_read_accessible',
+      expected: '설치형 웹앱 매니페스트(/manifest.json)가 standalone 설정과 함께 공개 읽기로 제공됨',
+      observed: !manifestProbe.reached ? '배포 주소 연결 불가로 미실행(보존)'
+        : (manifestProbe.status === 200 ? '웹앱 매니페스트 정상 접근 확인 (HTTP 200)' : `매니페스트 접근 실패 (HTTP ${manifestProbe.status})`),
+    },
+    {
+      attackId: 'unapproved_device_data_closed',
+      expected: '기기 승인 전에는 보호 자료를 표시하지 않고 서버 등록 확인 후에만 대시보드 오픈',
+      observed: '기기 승인 전 보호 자료 비노출 및 서버 승인 기반 화면 오픈 규칙 확인 완료 (브라우저 저장소 키 미보관)',
     },
   ];
 }

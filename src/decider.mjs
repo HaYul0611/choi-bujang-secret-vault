@@ -1,5 +1,5 @@
 // ALEPH SDP 엔진이 확인한 요청만 받는 학생 판정기입니다.
-// 6단계부터 규칙을 하나씩 추가합니다. 요청 본문의 userId, role, 기기 키, 토큰을
+// 6단계부터 규칙을 하나씩 추가합니다. 요청 본문의 userId, role, 기기 식별값, 토큰을
 // 별도로 믿거나 저장하지 않습니다. 자원 구분은 계약에 있는 service/path/route/method로만 합니다.
 export const RULE_IDS = Object.freeze([
   'device_registered',

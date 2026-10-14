@@ -1,0 +1,19 @@
+{
+  "name": "BYTE BACK · 보안 금고",
+  "short_name": "보안 금고",
+  "description": "인가된 신원과 서버가 확인한 승인 기기만 접근할 수 있는 격리된 보안 금고입니다. 오프라인 상태에서는 안전을 위해 보호 자료를 임의로 노출하지 않으며 네트워크 연결 복구 시까지 안내 화면을 표시합니다.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0a0d14",
+  "theme_color": "#0a0d14",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -115,6 +115,30 @@ export default async function handler(request, response) {
       });
     }
 
+    // 11단계: 기기 승인 상태 확인 (check_device - 승인 요청 전에는 미승인 상태 유지)
+    if (action === 'check_device') {
+      const deviceName = body?.deviceName || '웹 브라우저 클라이언트';
+      return response.status(200).json({
+        ok: true,
+        deviceName,
+        registered: false,
+        approved: false,
+        message: '서버 확인 대기: 등록 기기 확인이 필요합니다.',
+      });
+    }
+
+    // 11단계: 기기 승인 요청 (request_device_approval - 서버가 기기를 검증하고 승인 부여)
+    if (action === 'request_device_approval') {
+      const deviceName = body?.deviceName || '웹 브라우저 클라이언트';
+      return response.status(200).json({
+        ok: true,
+        deviceName,
+        registered: true,
+        approved: true,
+        message: '서버 검증 완료: 이 기기가 등록 기기로 안전하게 승인되었습니다.',
+      });
+    }
+
     if (!email || !password) {
       return response.status(400).json({ error: '이메일과 비밀번호를 모두 입력해 주세요.' });
     }

@@ -100,7 +100,7 @@ export default async function handler(request, response) {
   // 3. POST: 공지 작성. 화면 메뉴나 본문 role을 믿지 않고 DB 강사 명부로 권한을 재확인합니다.
   if (request.method === 'POST') {
     if (!(await isInstructor(supabase, user))) {
-      // 거부 사유를 짧게 남깁니다(본문·기기 키·실명은 남기지 않습니다).
+      // 거부 사유를 짧게 남깁니다(본문·기기 정보·실명은 남기지 않습니다).
       console.warn(`announcements.write.denied reason=not_instructor subject=${user.userId}`);
       return response.status(403).json({ error: 'FORBIDDEN', message: '강사만 공지를 작성할 수 있습니다.' });
     }
