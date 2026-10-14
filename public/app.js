@@ -14,7 +14,7 @@ const ThemeModule = {
 init() {
 const apply = (t) => {
 const dark = t === 'dark';
-document.documentElement.toggleAttribute('data-theme', dark);
+document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
 $('themeToggle')?.setAttribute('aria-checked', String(dark));
 const ic = $('themeIcon');
 if (ic) {

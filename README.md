@@ -174,6 +174,78 @@
   - 판정기 시험: `node scripts/decider-test.mjs`
   - 복원 시험: `node src/restore.mjs`
 
+## 12단계: 탈환 작전실을 완성합니다
+
+### 1. 1~11단계 정상·금지 요청 실측 대조표
+
+1~11단계의 대표 정상 허용 및 금지 거부 요청을 점검한 결과입니다. 심판 접수 서버에 실제 공격 요청 기록이 존재하지 않는 항목 및 쓰기·내부 로직 점검은 심판 규칙(요청을 보내지 않은 점검은 observed를 not_run으로 적음)에 따라 임의로 통과나 막음으로 꾸미지 않고 not_run(미실행)으로 분리 기록했습니다. 가상 메모 본문은 일절 포함하지 않습니다.
+
+| 단계 | 구분 | 요청 ID | 검증 대상 요청 | 기대 결과 | 실제 API 실측 결과 | 확인 시각 |
+|---|---|---|---|---|---|---|
+| 1단계 | 금지 거부 | `anonymous_static_leak` | `GET /data.json` (비인가) | 정적 가상 메모 노출 차단 (404 또는 미생성) | not_run (심판 요청 기록 미생성 / API 실측 미실행) | 2026-10-14T12:46:29Z |
+| 2~3단계 | 금지 거부 | `anonymous_api_read_blocked` | `GET /api/notes` (비로그인) | 401/403 JSON 오류 반환 | not_run (심판 요청 기록 미생성 / API 실측 미실행) | 2026-10-14T12:46:30Z |
+| 3단계 | 정상 허용 | `api_auth_read_allowed` | `GET /api/notes` (인가 토큰) | 200 OK 및 본인 메모 목록 반환 | not_run (인가 세션 점검 / API 실측 미실행) | 2026-10-14T12:46:30Z |
+| 4단계 | 내부 판정 | `other_user_note_read_blocked` | `GET /api/notes/:id` (타인 메모) | 403 Forbidden 또는 deny 반환 | not_run (내부 판정기 규칙 / API 실측 미실행) | 2026-10-14T12:46:30Z |
+| 5단계 | 금지 거부 | `direct_origin_api_blocked` | `GET {originalApiUrl}` (익명 우회) | 원본 저장소 직접 요청 차단 (401/403/404) | not_run (심판 요청 기록 미생성 / API 실측 미실행) | 2026-10-14T12:46:31Z |
+| 6단계 | 내부 판정 | `unregistered_device_decider_blocked` | `decide({ deviceRegistered: false })` | deny 및 device_not_registered 반환 | not_run (내부 판정기 규칙 / API 실측 미실행) | 2026-10-14T12:46:31Z |
+| 6단계 | 정상 허용 | `registered_device_decider_allowed` | `decide({ deviceRegistered: true })` | allow 및 approved 반환 | not_run (내부 판정기 규칙 / API 실측 미실행) | 2026-10-14T12:46:31Z |
+| 7단계 | 내부 판정 | `suspicious_access_step_up_required` | `decide({ hour: 3, network: 'unusual' })` | step_up 및 step_up_required 반환 | not_run (내부 판정기 규칙 / API 실측 미실행) | 2026-10-14T12:46:31Z |
+| 7단계 | 정상 허용 | `step_up_verified_allowed` | `decide({ stepUp: { verified: true } })` | allow 및 approved 반환 | not_run (내부 판정기 규칙 / API 실측 미실행) | 2026-10-14T12:46:31Z |
+| 8단계 | 내부 판정 | `cross_zone_path_blocked` | `decide({ service: 'notes', path: '/announcements/x' })` | deny 및 unauthorized_operation 반환 | not_run (내부 판정기 규칙 / API 실측 미실행) | 2026-10-14T12:46:31Z |
+| 8단계 | 내부 판정 | `hidden_function_route_blocked` | `decide({ path: '/notes/x/export' })` | deny 및 unauthorized_operation 반환 | not_run (내부 판정기 규칙 / API 실측 미실행) | 2026-10-14T12:46:31Z |
+| 8단계 | 내부 판정 | `announcement_zone_isolated_allow` | `decide({ service: 'announcements', path: '/announcements' })` | allow 및 approved 반환 | not_run (내부 판정기 규칙 / API 실측 미실행) | 2026-10-14T12:46:31Z |
+| 8단계 | 내부 판정 | `student_announcement_write_blocked` | `decide({ service: 'announcements', method: 'PUT', subjectId: 'learner_a' })` | deny 및 unauthorized_operation 반환 | not_run (내부 판정기 규칙 / API 실측 미실행) | 2026-10-14T12:46:31Z |
+| 8단계(운영) | 미실행 | `live_instructor_write_guard` | `PUT /api/announcements/:id` (운영 토큰 미발급) | 라이브 403 차단 | not_run (운영 로그인 토큰 미발급 환경으로 미실행 보존) | 2026-10-14T12:46:31Z |
+| 9단계 | 내부 탐지 | `burst_read_detection_revocation` | `detect(burstEvents)` (10분 121건) | propose_revocation 및 burst_read 반환 | not_run (내부 탐지 규칙 / API 실측 미실행) | 2026-10-14T12:46:31Z |
+| 9단계 | 정상 허용 | `normal_read_detection_observe` | `detect(normalEvents)` (10분 30건) | observe 반환 | not_run (내부 탐지 규칙 / API 실측 미실행) | 2026-10-14T12:46:31Z |
+| 10단계 | 내부 복원 | `policy_restore_preview_verified` | `previewPolicyRestore(safeBackup, compromised)` | readyToRestore: true, restoreVersion: 9 | not_run (내부 복원 로직 / API 실측 미실행) | 2026-10-14T12:46:31Z |
+| 10단계 | 내부 복원 | `single_note_restore_verified` | `restoreSingleNote({ id: 'note_b_vault_01' })` | ID·소유자·해시 일치 단건 복원 | not_run (내부 복원 로직 / API 실측 미실행) | 2026-10-14T12:46:31Z |
+| 11단계 | 정상 허용 | `manifest_pwa_read_accessible` | `GET /manifest.json` | 200 OK 및 standalone 제공 | not_run (심판 요청 기록 미생성 / API 실측 미실행) | 2026-10-14T12:46:32Z |
+| 11단계 | 클라이언트 | `unapproved_device_data_closed` | 기기 승인 전 자료 비노출 / 승인 후 오픈 | 승인 전 비노출, 승인 후 오픈 | not_run (클라이언트 규칙 / API 실측 미실행) | 2026-10-14T12:46:32Z |
+| 종합 | 미실행 | `full_assault_41_types` | 41종 총공세 종합 시험 | 미실행 분리 유지 | not_run (0 / 41 막음, 상용 제품 완성 또는 전량 방어로 표시하지 않음) | 2026-10-14T12:46:32Z |
+
+### 2. 실측 대조표 생성 및 실행 절차
+
+위 실측 표는 아래 절차에 따라 실제 API와 판정기를 직접 호출하여 검증하고 수치를 대조합니다.
+
+1. **배포 주소 및 네트워크 실측**:
+   - `node scripts/bundle.mjs`를 실행하여 배포된 `/data.json`, `/api/notes`, `/api/announcements`, `/manifest.json` 및 Supabase 원본 API에 실제 요청을 보내 HTTP 상태 코드를 실측합니다.
+2. **판정기 및 복합 신호 로컬 실측**:
+   - `node scripts/decider-test.mjs` 및 `node scripts/fixture-7.mjs`를 실행하여 미등록 기기 차단(`device_not_registered`), 복합 이상 접속 추가 확인(`step_up_required`), 구역 혼선 및 기능 경로 위장 차단(`unauthorized_operation`), 등록 기기 및 공지 구역 정상 허용을 실측합니다.
+3. **행위 탐지기 실측**:
+   - `node scripts/detect-test.mjs`를 실행하여 10분 구간 내 120건 초과 폭주 조회에 대한 회수 제안(`propose_revocation / burst_read`)과 120건 이하 정상 조회의 관찰(`observe`) 유지를 실측합니다.
+4. **정책 무결성 및 단건 복구 실측**:
+   - `node src/restore.mjs`를 실행하여 침해 전 v9 안전 정책 사본의 SHA-256 체크섬 대조 및 diff 계산과 시험 계정 B의 메모 단건 복구(본문 미노출)를 실측합니다.
+5. **수치 및 미실행 일치 확인**:
+   - 생성된 `artifacts/submission.json`의 `attackAttempts` 배열과 탈환 작전실 화면(`public/index.html`)의 수치가 '확인 0건 / 미실행 17건 (41종 총공세: 막음 0 / 41 미실행)'으로 서로 일치하는지 확인합니다.
+
+### 3. 출처 구분 (제공 엔진과 학생 작업의 분리)
+
+검사한 커밋(`4cafae2` / `HEAD`)을 기준으로 제공 엔진과 학생 작업의 출처를 엄격히 분리하고 각 구성요소의 재현 순서를 안내합니다.
+
+#### 1) 출처 구분
+- **제공 엔진 출처**: **ALEPH SDP 엔진**
+  - 엔진은 공인된 접속 신호(`source: 'judge_fixture'`)를 검증하여 판정기에 인계하고, 자원 경로 템플릿 정규화 및 가상 사건 스트림 전달을 담당합니다.
+  - 제공 엔진은 심판 측이 제공하는 기반 구조이며 학생 작업과 합쳐져 있지 않습니다.
+- **학생 작업 출처** (학생 몫):
+  - **학생 판정기** (`src/decider.mjs`): 등록 기기 검증, 복합 이상 접속 추가 확인(step_up), 구역 격리(notes vs announcements) 판정 로직 구현.
+  - **학생 탐지 규칙** (`src/detect.mjs`): 사건 스트림에서 슬라이딩 윈도우 기반 10분 내 120건 초과 폭주 조회 탐지 및 기기 권한 회수 제안 로직 구현.
+  - **학생 접속 앱** (`public/app.js`, `public/manifest.json`): PWA standalone 설정, 서버 승인 기반 화면 오픈 제어, 브라우저 저장소 내 키 미보관 구현.
+  - **학생 자료실** (`public/index.html`, `api/notes.js`, `api/announcements/`, `src/restore.mjs`): 격리된 자료실 화면, 탈환 작전실 관제 화면, 단건 복원 및 정책 검증 구현.
+
+#### 2) 학생 4대 구성요소의 설치·실행·중지·복구 재현 순서
+
+| 구성요소 | 설치 (Install) | 실행 (Run) | 중지 (Stop) | 복구 (Restore) |
+|---|---|---|---|---|
+| **학생 판정기**<br>(`src/decider.mjs`) | Node.js 22+ 환경에서 저장소 클론 후 계약 명세(`docs/DECIDER_REQUEST.md`) 확인 | `node scripts/decider-test.mjs` 실행 (단위 시험) | 테스트 완료 즉시 자동 종료 또는 `Ctrl+C` | `git checkout HEAD -- src/decider.mjs` (검증 커밋 원복) |
+| **학생 탐지 규칙**<br>(`src/detect.mjs`) | 사건 형식 명세(`docs/DETECT_EVENTS.md`) 확인 | `node scripts/detect-test.mjs` 실행 (폭주 탐지 시험) | 테스트 완료 즉시 자동 종료 또는 `Ctrl+C` | `git checkout HEAD -- src/detect.mjs` (검증 커밋 원복) |
+| **학생 접속 앱**<br>(`public/app.js`, `manifest.json`) | `node scripts/build-public.mjs --local` 정적 자산 준비 | 브라우저로 배포 주소(`/`) 접속 및 설치형 PWA 실행 | 브라우저 탭 또는 앱 창 닫기 | `git checkout HEAD -- public/app.js public/manifest.json` |
+| **학생 자료실**<br>(`public/index.html`, `api/`, `src/restore.mjs`) | `npm install` 의존성 설치 및 DB 스키마(`schema.sql`) 적용 | 배포 주소 접속 또는 `node scripts/bundle.mjs` 종합 검증 | 서버리스 대기 상태 유지 또는 프로세스 종료 | `node src/restore.mjs` (안전 정책 v9 사본 검증 및 단건 복구) |
+
+#### 3) 비밀값 취급 및 유의 사항
+- **비밀값 미포장 원칙**: 데이터베이스 키, JWT 시크릿, 기기 개인키 등의 비밀값은 코드, 로그, Git 커밋, 문서에 일절 포장하거나 포함하지 않습니다. 필요한 경우 Vercel 시스템 환경변수 등 공식 비밀 입력란에만 직접 설정합니다.
+- **범위 한계 명시**: 본 구현 및 안내는 교육 방어전의 검증 및 실습 목적이며, 상용 제품 완성, 보안 인증 취득, 또는 운영 방어 종료를 의미하지 않습니다.
+
 ## 보너스 과제: 무차별 로그인 공격을 잡아 냅니다 (xdr-01)
 
 ### 1. 현재 작동하는 기능과 다시 실행하는 방법

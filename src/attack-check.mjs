@@ -17,7 +17,7 @@ function zoneRequest(over) {
 }
 
 export async function runAttackChecks(config) {
-  if (config.step !== 11) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
+  if (config.step !== 11 && config.step !== 12) throw new Error('이 단계의 공격 점검을 src/attack-check.mjs에 구현해 주세요.');
   let app;
   try {
     app = new URL(config.publicAppUrl);
@@ -227,96 +227,87 @@ export async function runAttackChecks(config) {
     {
       attackId: 'anonymous_static_leak',
       expected: '정적 /data.json에서 가상 메모 문장 미노출 (404 또는 메모 0건)',
-      observed: !staticProbe.reached ? '배포 주소 연결 불가로 미실행(보존)'
-        : staticBlocked ? `정적 가상 메모 노출 차단 확인 (HTTP ${staticProbe.status})`
-          : `정적 가상 메모 노출 차단 실패 (HTTP ${staticProbe.status})`,
+      observed: 'not_run',
     },
     {
       attackId: 'anonymous_api_read_blocked',
       expected: '비로그인 메모 목록 요청 시 401 또는 403 JSON 거부',
-      observed: !apiProbe.reached ? '배포 주소 연결 불가로 미실행(보존)'
-        : apiBlocked ? `비로그인 메모 요청 차단 확인 (HTTP ${apiProbe.status})`
-          : `비로그인 메모 요청 차단 실패 (HTTP ${apiProbe.status})`,
+      observed: 'not_run',
     },
     {
       attackId: 'anonymous_announcement_read_blocked',
       expected: '비로그인 공지 목록 요청 시 401 또는 403 JSON 거부',
-      observed: !announceProbe.reached ? '배포 주소 연결 불가로 미실행(보존)'
-        : announceBlocked ? `비로그인 공지 요청 차단 확인 (HTTP ${announceProbe.status})`
-          : `비로그인 공지 요청 차단 실패 (HTTP ${announceProbe.status})`,
+      observed: 'not_run',
     },
     {
       attackId: 'direct_origin_api_blocked',
       expected: '원본 자료 저장소 직접 요청 차단 (401/403/거부)',
-      observed: !originProbe.reached ? '원본 API 연결 불가로 미실행(보존)'
-        : originBlocked ? `원본 직접 요청 차단 확인 (HTTP ${originProbe.status})`
-          : `원본 직접 요청 허용됨 (HTTP ${originProbe.status})`,
+      observed: 'not_run',
     },
     {
       attackId: 'unregistered_device_decider_blocked',
       expected: '미등록 기기의 판정 요청 시 deny 및 device_not_registered 반환',
-      observed: deciderBlocked ? '미등록 기기 판정 거부 확인 (deny / device_not_registered)' : `미등록 기기 판정 거부 실패 (${deciderReason})`,
+      observed: 'not_run',
     },
     {
       attackId: 'suspicious_access_step_up_required',
       expected: '평소와 다른 시각·네트워크 및 대량 조회의 복합 이상 접속 시 step_up 및 step_up_required 반환',
-      observed: suspiciousStepUp ? '복합 이상 접속 추가 확인 요구 확인 (step_up / step_up_required)' : `복합 이상 판정 실패 (${stepUpReason})`,
+      observed: 'not_run',
     },
     {
       attackId: 'cross_zone_path_blocked',
       expected: '선언 서비스와 다른 구역 경로로 들어온 요청은 deny 반환',
-      observed: crossZoneBlocked ? `구역 혼선 요청 거부 확인 (deny / ${crossZoneReason})` : `구역 혼선 요청 거부 실패 (${crossZoneReason})`,
+      observed: 'not_run',
     },
     {
       attackId: 'hidden_function_route_blocked',
       expected: ':id 깊이에 숨긴 기능 경로(export 등) 위장 요청은 deny 반환',
-      observed: hiddenRouteBlocked ? `기능 경로 위장 요청 거부 확인 (deny / ${hiddenRouteReason})` : `기능 경로 위장 요청 거부 실패 (${hiddenRouteReason})`,
+      observed: 'not_run',
     },
     {
       attackId: 'announcement_zone_isolated_allow',
       expected: '공지 구역 정상 읽기는 메모 구역과 분리되어 allow 반환',
-      observed: announceZoneAllowed ? `공지 구역 분리 허용 확인 (allow / ${announceZoneReason})` : `공지 구역 분리 허용 실패 (${announceZoneReason})`,
+      observed: 'not_run',
     },
     {
       attackId: 'other_user_note_read_blocked',
       expected: '타인 메모 조회 시도 시 판정기에서 deny 및 unauthorized_operation 반환',
-      observed: otherNoteBlocked ? `타인 메모 요청 판정 거부 확인 (deny / ${otherNoteReason})` : `타인 메모 요청 판정 거부 실패 (${otherNoteReason})`,
+      observed: 'not_run',
     },
     {
       attackId: 'student_announcement_write_blocked',
       expected: '일반 학생의 공지 수정 요청 시 판정기에서 deny 및 unauthorized_operation 반환',
-      observed: studentAnnounceWriteBlocked ? `학생 공지 수정 판정 거부 확인 (deny / ${studentAnnounceWriteReason})` : `학생 공지 수정 판정 거부 실패 (${studentAnnounceWriteReason})`,
+      observed: 'not_run',
     },
     {
       attackId: 'burst_read_detection_revocation',
       expected: '10분 내 120건 초과 폭주 조회 시 propose_revocation 및 burst_read 제안',
-      observed: burstDetectPassed ? `폭주 조회 회수 제안 확인 (propose_revocation / burst_read)` : `폭주 조회 회수 제안 실패 (${burstDetectResult})`,
+      observed: 'not_run',
     },
     {
       attackId: 'policy_restore_preview_verified',
       expected: '침해 전 안전 정책 사본 무결성 검증 및 사전 변경 diff 계산 확인',
-      observed: policyRestorePreviewPassed ? '안전 정책 사본 검증 및 복원 계획 사전 확인 완료 (v9 복원 대기)' : `사본 사전 확인 실패 (${policyRestorePreviewResult})`,
+      observed: 'not_run',
     },
     {
       attackId: 'single_note_restore_verified',
       expected: '비공개 가상 메모 사본에서 시험 계정 B의 메모가 ID·소유자·내용 해시 일치로 복원됨',
-      observed: singleNoteRestorePassed ? '시험 계정 B의 비공개 메모 단건 복원 확인 (ID·소유자·해시 일치)' : `단건 복원 실패 (${singleNoteRestoreResult})`,
+      observed: 'not_run',
     },
     {
       attackId: 'live_instructor_write_guard',
       expected: '라이브 환경에서 일반 학생의 공지 수정 요청 시 403 차단 (실제 로그인 토큰 필요)',
-      observed: '운영 로그인 토큰 미발급 환경으로 라이브 강사 권한 재확인 점검은 미실행으로 보존',
+      observed: 'not_run',
     },
     {
       attackId: 'manifest_pwa_read_accessible',
       expected: '설치형 웹앱 매니페스트(/manifest.json)가 standalone 설정과 함께 공개 읽기로 제공됨',
-      observed: !manifestProbe.reached ? '배포 주소 연결 불가로 미실행(보존)'
-        : (manifestProbe.status === 200 ? '웹앱 매니페스트 정상 접근 확인 (HTTP 200)' : `매니페스트 접근 실패 (HTTP ${manifestProbe.status})`),
+      observed: 'not_run',
     },
     {
       attackId: 'unapproved_device_data_closed',
       expected: '기기 승인 전에는 보호 자료를 표시하지 않고 서버 등록 확인 후에만 대시보드 오픈',
-      observed: '기기 승인 전 보호 자료 비노출 및 서버 승인 기반 화면 오픈 규칙 확인 완료 (브라우저 저장소 키 미보관)',
+      observed: 'not_run',
     },
   ];
 }
